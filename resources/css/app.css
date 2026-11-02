@@ -40,44 +40,141 @@
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     transition: all 0.15s ease-in-out;
 }
-.btn-metallic-gray:hover {
-    background: linear-gradient(180deg, #b8bdc6 0%, #90959f 50%, #767b85 100%);
-    transform: translateY(-1px);
-}
-.btn-metallic-gray:active {
-    transform: translateY(1px);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+
+/* ini buat live tutor halaman beranda */
+/* Highlighting Active Element with White Border & Blue Glow */
+.driver-active-element {
+    transform: scale(1.02) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border-radius: 1.5rem !important;
+    outline: 4px solid #ffffff !important;
+    box-shadow: 0 0 30px 8px rgba(66, 153, 225, 0.75), 0 20px 25px -5px rgba(0, 0, 0, 0.3) !important;
+    z-index: 100002 !important;
 }
 
-/* Vibrant green 3D button gradient */
-.btn-vibrant-green {
-    background: linear-gradient(180deg, #66be43 0%, #4da533 50%, #3e8d28 100%);
-    box-shadow: 0 6px 12px -2px rgba(62, 141, 40, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
-    color: #ffffff;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    transition: all 0.15s ease-in-out;
-}
-.btn-vibrant-green:hover {
-    background: linear-gradient(180deg, #71cd4b 0%, #54b238 50%, #449c2d 100%);
-    transform: translateY(-1px);
-}
-.btn-vibrant-green:active {
-    transform: translateY(1px);
+/* Card Popover Walkthrough */
+.driver-popover {
+    border-radius: 1.75rem !important;
+    /* 28px */
+    padding: 1.25rem 1.5rem !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 20px 30px -5px rgba(0, 0, 0, 0.25) !important;
+    font-family: 'Poppins', sans-serif !important;
+    max-width: 380px !important;
+    border: none !important;
 }
 
-/* Vibrant red 3D button gradient */
-.btn-vibrant-red {
-    background: linear-gradient(180deg, #f04e3e 0%, #e02f23 50%, #c41e17 100%);
-    box-shadow: 0 6px 12px -2px rgba(224, 47, 35, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
-    color: #ffffff;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    transition: all 0.15s ease-in-out;
-}
-.btn-vibrant-red:hover {
-    background: linear-gradient(180deg, #f75d4e 0%, #e8382c 50%, #ce241c 100%);
-    transform: translateY(-1px);
-}
-.btn-vibrant-red:active {
-    transform: translateY(1px);
+/* Format Teks Warna Biru */
+.driver-popover-description {
+    font-size: 0.9rem !important;
+    color: #2b4c7e !important;
+    line-height: 1.6 !important;
+    font-weight: 500 !important;
 }
 
+.driver-popover-description strong {
+    color: #1a365d !important;
+    font-weight: 700 !important;
+}
+
+/* Sembunyikan elemen judul & close bawaan */
+.driver-popover-title,
+.driver-popover-close-btn {
+    display: none !important;
+}
+
+/* Footer (Layout 2 Sisi: Kiri = Lewati/Selesai, Kanan = Group Navigasi < 2/3 >) */
+.driver-popover-footer {
+    margin-top: 1.25rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+/* Tombol LEWATI (Kiri) */
+.driver-custom-skip-btn {
+    border-radius: 9999px !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    padding: 0.4rem 1.2rem !important;
+    border: 1.5px solid #cbd5e1 !important;
+    color: #3b5998 !important;
+    background: #ffffff !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.driver-custom-skip-btn:hover {
+    background-color: #f8fafc !important;
+}
+
+/* Tombol SELESAI (Kiri pada step 3/3) */
+.driver-custom-skip-btn.btn-selesai-custom {
+    border: none !important;
+    background: linear-gradient(135deg, #4c78dd, #3b5998) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(59, 89, 152, 0.35) !important;
+}
+
+/* Group Kanan: < 1/3 > */
+.driver-right-nav-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.35rem !important;
+}
+
+/* Tombol Panah Kiri < (Undo / Previous) */
+.driver-popover-prev-btn {
+    background: #4c78dd !important;
+    color: #ffffff !important;
+    border-radius: 9999px !important;
+    width: 1.85rem !important;
+    height: 1.85rem !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    border: none !important;
+    cursor: pointer !important;
+}
+
+.driver-popover-prev-btn.driver-disabled {
+    background: #cbd5e1 !important;
+    color: #94a3b8 !important;
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
+}
+
+/* Teks Indikator Progress (1/3) */
+.driver-popover-progress-text {
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    color: #3b5998 !important;
+    padding: 0 0.3rem !important;
+}
+
+/* Tombol Panah Kanan > (Next) */
+.driver-popover-next-btn {
+    background: #4c78dd !important;
+    color: #ffffff !important;
+    border-radius: 9999px !important;
+    width: 1.85rem !important;
+    height: 1.85rem !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    border: none !important;
+    cursor: pointer !important;
+}
+
+.driver-popover-next-btn.driver-disabled {
+    background: #cbd5e1 !important;
+    color: #94a3b8 !important;
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
+}
