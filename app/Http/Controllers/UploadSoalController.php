@@ -143,8 +143,11 @@ class UploadSoalController extends Controller
         } catch (QueryException $e) {
             // Masalah database bukan masalah file.
             throw $e;
-        } catch (Throwable) {
-            // File rusak, bukan .xlsx, atau terkunci kata sandi: kesalahan pengguna, tidak perlu dicatat di log.
+        } catch (Throwable $e) {
+            // File rusak, bukan .xlsx, atau terkunci kata sandi. Tetap dicatat di log supaya penyebab asli
+            // (mis. ekstensi PHP tidak ada di server) bisa dibedakan dari file yang memang rusak.
+            report($e);
+
             return null;
         }
 
