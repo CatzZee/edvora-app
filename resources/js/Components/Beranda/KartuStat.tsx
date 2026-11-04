@@ -11,32 +11,22 @@ export default function KartuStat({
     label,
     nilai,
     awalan = '',
-<<<<<<< HEAD
     tooltip,
-=======
     tur,
->>>>>>> origin/main
 }: {
     label: string;
     nilai: number | string;
     awalan?: string;
-<<<<<<< HEAD
     tooltip?: ReactNode;
-}) {
-    return (
-        // Sedikit membesar saat kursor diarahkan, senada dengan cincin penguasaan.
-        <div className="relative min-w-[55px] rounded-xl bg-white/[0.32] px-3 py-[10px] text-center shadow-[2px_2px_5.7px_0px_rgba(0,0,0,0.01)] transition-transform duration-200 ease-out hover:scale-110">
-            {tooltip && <div className="absolute left-2 top-2 z-10">{tooltip}</div>}
-=======
     tur?: string;
 }) {
     return (
         // Sedikit membesar saat kursor diarahkan, senada dengan cincin penguasaan.
         <div
             data-tur={tur}
-            className="min-w-[55px] rounded-xl bg-white/[0.32] px-3 py-[10px] text-center shadow-[2px_2px_5.7px_0px_rgba(0,0,0,0.01)] transition-transform duration-200 ease-out hover:scale-110"
+            className="relative min-w-[55px] rounded-xl bg-white/[0.32] px-3 py-[10px] text-center shadow-[2px_2px_5.7px_0px_rgba(0,0,0,0.01)] transition-transform duration-200 ease-out hover:scale-110"
         >
->>>>>>> origin/main
+            {tooltip && <div className="absolute left-2 top-2 z-10">{tooltip}</div>}
             <dt className="text-[14px] font-normal leading-none text-white">{label}</dt>
             <dd className="mt-[6px] text-[23px] font-semibold leading-[25px] text-white">
                 {awalan}
