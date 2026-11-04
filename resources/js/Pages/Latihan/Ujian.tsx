@@ -862,18 +862,6 @@ export default function Ujian({ subtes, soalList, konfigurasi, jawabanTersimpan 
                     </div>
                 </div>
             </Modal>
-
-            {/* TOMBOL DEV MODE */}
-            <button
-                type="button"
-                onClick={() => {
-                    localStorage.removeItem('edvora_has_seen_ujian_tour');
-                    window.location.reload();
-                }}
-                className="fixed bottom-5 right-5 z-[1010] flex items-center gap-2 rounded-full bg-rose-600 px-4 py-2.5 text-xs font-bold text-white shadow-xl transition hover:bg-rose-700 active:scale-95 cursor-pointer"
-            >
-                🔄 Reset Tour Ujian (Dev Mode)
-            </button>
         </LatihanLayout>
     );
 }
