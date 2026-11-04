@@ -201,7 +201,11 @@ export default function Ujian({ subtes, soalList, konfigurasi, jawabanTersimpan 
             ? soal.opsi_jawaban.some((o: OpsiJawaban) => pilihanKolom[String(o.id)] === undefined)
             : opsiTerpilih.length === 0;
 
-    const simpanJawaban = (soalId: IdOpsi, opsiIds: IdOpsi[], jawabanIsian = '', pilihanKolom: Record<string, number> = {}) => {
+    // Mode fleksibel dan remedial (bukan simulasi): Keluar Halaman hanya ada selama masih ada soal yang belum
+    // disimpan, dan Selesaikan Latihan baru muncul setelah SEMUA soal tersimpan.
+    const semuaTerjawab = soalList.every((s) => cariJawaban(s.id) !== undefined);
+
+    const simpanJawaban =(soalId: IdOpsi, opsiIds: IdOpsi[], jawabanIsian = '', pilihanKolom: Record<string, number> = {}) => {
         const lainnya = form.data.jawaban.filter((j: Jawaban) => j.soalId !== soalId);
         const kosong = opsiIds.length === 0 && jawabanIsian.trim() === '' && Object.keys(pilihanKolom).length === 0;
         form.setData('jawaban', kosong ? lainnya : [...lainnya, { soalId, opsiIds, jawabanIsian, pilihanKolom }]);
@@ -352,7 +356,7 @@ export default function Ujian({ subtes, soalList, konfigurasi, jawabanTersimpan 
                                     >
                                         Simpan Jawaban
                                     </button>
-                                ) : (
+                                ) : semuaTerjawab ? null : (
                                     /* STEP 5: HIGHLIGHT KHUSUS TOMBOL KELUAR HALAMAN (MENYALA MERAH TERANG) */
                                     <div
                                         id="tour-keluar-halaman"
@@ -576,11 +580,11 @@ export default function Ujian({ subtes, soalList, konfigurasi, jawabanTersimpan 
                         >
                             {mengirim ? 'Menyimpan…' : 'Simpan Jawaban'}
                         </button>
-                    ) : (
+                    ) : semuaTerjawab ? (
                         <button type="button" onClick={() => setModal('selesai')} className={`${tombolBesar} bg-ujian-biru text-white`}>
                             Selesaikan Latihan
                         </button>
-                    )
+                    ) : null
                 }
             >
                 <div key={soal.id} className="animate-muncul-halus">

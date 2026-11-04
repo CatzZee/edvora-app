@@ -26,21 +26,24 @@ interface SiswaProps {
     poin: number;
     rekomendasi: TopikRekomendasi[];
     penguasaanSubtes: PenguasaanSubtes[];
+    tampilkanTur: boolean;
 }
 
-export default function Siswa({ judul = 'Beranda', level, poin, rekomendasi, penguasaanSubtes }: SiswaProps) {
+export default function Siswa({ judul = 'Beranda', level, poin, rekomendasi, penguasaanSubtes, tampilkanTur }: SiswaProps) {
     const user = usePage<any>().props.auth.user;
 
     // State untuk Modal Awal & Step Walkthrough
     const [showWelcomeModal, setShowWelcomeModal] = useState(false);
     const [currentStep, setCurrentStep] = useState<number | null>(null); // null = walkthrough mati, 1/2/3 = step aktif
 
+    // Penanda "sudah lihat tur" per akun, supaya dua akun di satu browser tidak saling memengaruhi.
+    const kunciTur = `edvora_has_seen_beranda_tour_${user.id}`;
+
     useEffect(() => {
-        const hasSeenTour = localStorage.getItem('edvora_has_seen_beranda_tour');
-        if (!hasSeenTour) {
+        if (tampilkanTur && !localStorage.getItem(kunciTur)) {
             setShowWelcomeModal(true);
         }
-    }, []);
+    }, [tampilkanTur, kunciTur]);
 
     // Jalankan Tur Langkah demi Langkah
     const startStepByStepTour = () => {
@@ -51,13 +54,13 @@ export default function Siswa({ judul = 'Beranda', level, poin, rekomendasi, pen
     // Hentikan / Selesaikan Tur
     const finishTour = () => {
         setCurrentStep(null);
-        localStorage.setItem('edvora_has_seen_beranda_tour', 'true');
+        localStorage.setItem(kunciTur, 'true');
     };
 
     // Lewati di Modal Awal
     const handleSkipModal = () => {
         setShowWelcomeModal(false);
-        localStorage.setItem('edvora_has_seen_beranda_tour', 'true');
+        localStorage.setItem(kunciTur, 'true');
     };
 
     return (

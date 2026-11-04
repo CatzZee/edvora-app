@@ -128,7 +128,8 @@ export default function Perkembangan({ totalSoalDikerjakan, remedial, tryOutList
                         <IkonBulat warna="bg-siswa-umpan-salah text-siswa-umpan-salah-teks">
                             <path d="M4 4v5h5M20 20v-5h-5M5.5 15A7.5 7.5 0 0018.4 17M18.5 9A7.5 7.5 0 005.6 7" />
                         </IkonBulat>
-                        <div className="min-w-0 flex-1">
+                        {/* min-w-[140px]: lebar minimum ini yang membuat tombol turun baris di layar sempit (min-w-0 membuatnya menimpa teks). */}
+                        <div className="min-w-[140px] flex-1">
                             <h2 className="text-[14px] font-medium text-siswa-teks">Antrean Remedial</h2>
                             <p className="text-[28px] font-semibold leading-tight text-siswa-judul">{remedial.total}</p>
                             {remedial.total === 0 && <p className="text-[12px] text-siswa-teks">Belum ada soal yang perlu diperbaiki</p>}
@@ -138,7 +139,7 @@ export default function Perkembangan({ totalSoalDikerjakan, remedial, tryOutList
                             type="button"
                             disabled={remedial.total === 0}
                             onClick={() => setPilihRemedial(true)}
-                            className={`${tombolUtama} disabled:cursor-not-allowed disabled:bg-siswa-ujian-redup disabled:bg-none disabled:shadow-none disabled:hover:translate-y-0`}
+                            className={`${tombolUtama} w-full sm:w-auto disabled:cursor-not-allowed disabled:bg-siswa-ujian-redup disabled:bg-none disabled:shadow-none disabled:hover:translate-y-0`}
                         >
                             Latih Soal Yang Salah
                         </button>

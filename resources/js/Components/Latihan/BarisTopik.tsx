@@ -41,12 +41,13 @@ export default function BarisTopik({ label, dipilih, onUbah, direkomendasikan }:
             </span>
 
             {/* origin-left: tulisan membesar ke kanan, tidak menabrak lingkaran centang. */}
-            <span className="inline-block origin-left text-[15px] font-semibold leading-normal text-siswa-judul-seksi transition-transform duration-300 ease-out group-hover:scale-105">
+            <span className="inline-block min-w-0 origin-left text-[15px] font-semibold leading-normal text-siswa-judul-seksi transition-transform duration-300 ease-out group-hover:scale-105">
                 {label}
             </span>
 
+            {/* Lencana: shrink-0 + whitespace-nowrap, sebab overflow-hidden membuat lebar minimumnya 0 dan tanpa ini lencana ikut menyusut sampai teksnya terpotong. */}
             {direkomendasikan && (
-                <span className="relative flex h-[25.889px] items-center overflow-hidden rounded-tombol bg-lencana-rekomendasi px-[14px] text-[12px] font-semibold text-white shadow-panel">
+                <span className="relative flex h-[25.889px] shrink-0 items-center overflow-hidden whitespace-nowrap rounded-tombol bg-lencana-rekomendasi px-[14px] text-[12px] font-semibold text-white shadow-panel">
                     {/* Kilau: garis cahaya putih transparan yang menyapu lencana; overflow-hidden memotongnya di tepi lencana. */}
                     <span
                         aria-hidden="true"

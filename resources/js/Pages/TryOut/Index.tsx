@@ -66,7 +66,8 @@ export default function Index({ paketList }: IndexProps) {
                         >
                             <IkonPaket />
 
-                            <div className="min-w-0 flex-1">
+                            {/* min-w-[140px]: lebar minimum ini yang membuat tombol turun baris di layar sempit (min-w-0 membuat teks diperas sampai tertimpa). */}
+                            <div className="min-w-[140px] flex-1">
                                 <div className="flex flex-wrap items-center gap-2">
                                     <h2 className="text-[16px] font-semibold leading-[22px] text-siswa-judul">{to.judul}</h2>
                                     <LencanaDibuka />
