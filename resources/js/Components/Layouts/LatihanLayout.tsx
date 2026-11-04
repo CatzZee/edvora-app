@@ -11,7 +11,8 @@ interface LatihanLayoutProps {
     // Try Out: judul di tengah topbar menggantikan breadcrumb, tanpa tautan ke Beranda
     // (siswa tidak boleh meninggalkan Try Out lewat topbar).
     judulTengah?: string;
-    // Panel kanan (Navigasi Soal). Di layar sempit turun ke bawah konten.
+    // Panel kanan (Navigasi Soal). Di layar sempit turun ke bawah konten, dan bulatan nomornya
+    // disembunyikan ke lembar bawah oleh NavigasiSoal supaya tombol aksi menempel di bawah opsi jawaban.
     sidebar?: ReactNode;
     children: ReactNode;
 }
@@ -81,7 +82,7 @@ export default function LatihanLayout({ breadcrumb = [], judulTengah, sidebar, c
             <main className="min-h-0 flex-1 overflow-y-auto">
                 {sidebar ? (
                     // Selebar layar seperti di Figma: hanya jarak tepi yang membesar di layar lebar, tanpa batas lebar konten.
-                    <div className="grid w-full gap-6 px-4 py-6 md:grid-cols-[minmax(0,1fr)_260px] md:px-8 lg:grid-cols-[minmax(0,1fr)_338px] lg:gap-[18px] lg:px-[52px] xl:grid-cols-[minmax(0,1fr)_380px] xl:gap-6 2xl:px-16">
+                    <div className="grid w-full gap-4 px-4 py-6 md:grid-cols-[minmax(0,1fr)_260px] md:gap-6 md:px-8 lg:grid-cols-[minmax(0,1fr)_338px] lg:gap-[18px] lg:px-[52px] xl:grid-cols-[minmax(0,1fr)_380px] xl:gap-6 2xl:px-16">
                         <div className="min-w-0">{children}</div>
                         <aside className="md:sticky md:top-6 md:self-start">{sidebar}</aside>
                     </div>
