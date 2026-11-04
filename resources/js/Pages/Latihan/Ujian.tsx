@@ -16,7 +16,8 @@ type IdOpsi = string | number;
 type Jawaban = { soalId: IdOpsi; opsiIds: IdOpsi[]; jawabanIsian?: string; pilihanKolom?: Record<string, number> };
 
 interface UjianProps {
-    subtes: any;
+    // Dikirim server, tapi halaman pengerjaan tidak memakainya: breadcrumb di sini tanpa tautan.
+    subtes?: any;
     soalList: any[];
     konfigurasi: any;
     jawabanTersimpan?: JawabanTersimpan[];
@@ -33,7 +34,7 @@ function pesanGagal(e: unknown, aksi: string): string {
     return data?.message ?? `Gagal ${aksi}. Coba lagi.`;
 }
 
-export default function Ujian({ subtes, soalList, konfigurasi, jawabanTersimpan = [], hintTerbuka: hintAwal = {} }: UjianProps) {
+export default function Ujian({ soalList, konfigurasi, jawabanTersimpan = [], hintTerbuka: hintAwal = {} }: UjianProps) {
     const simulasi = konfigurasi.mode === 'simulasi';
 
     // State Walkthrough Ujian (1/5 - 5/5)
@@ -315,14 +316,10 @@ export default function Ujian({ subtes, soalList, konfigurasi, jawabanTersimpan 
 
     return (
         <LatihanLayout
-            breadcrumb={[
-                { label: 'Latihan Soal', href: route('latihan.index') },
-                {
-                    label: konfigurasi.namaSubtes,
-                    href: subtes?.kode_subtes ? route('latihan.mode', { subtes: subtes.kode_subtes, tab: konfigurasi.mode }) : undefined,
-                },
-                ...(namaMode ? [`Mode ${namaMode}`] : []),
-            ]}
+            // Selama mengerjakan, breadcrumb hanya penunjuk posisi: tanpa tautan supaya siswa tidak
+            // keluar dari ujian lewat topbar dan kehilangan jawaban yang belum disimpan.
+            breadcrumb={['Latihan Soal', konfigurasi.namaSubtes, ...(namaMode ? [`Mode ${namaMode}`] : [])]}
+            tanpaTautan
             sidebar={
                 <div className={`relative space-y-4 font-poppins ${currentStep === 4 || currentStep === 5 ? 'z-[31]' : ''}`}>
                     {/* STEP 4: HIGHLIGHT PANEL NAVIGASI SOAL */}
