@@ -4,6 +4,7 @@ import KartuStat from '@/Components/Beranda/KartuStat';
 import DetailBadge, { BadgeDiperoleh } from '@/Components/Gamifikasi/DetailBadge';
 import GambarAvatar from '@/Components/Gamifikasi/GambarAvatar';
 import SiswaLayout from '@/Components/Layouts/SiswaLayout';
+import TurFitur, { LangkahTur } from '@/Components/Tur/TurFitur';
 import { formatTanggalWib } from '@/lib/waktu';
 
 interface LevelXp {
@@ -43,6 +44,48 @@ interface ProfilUtamaProps {
 
 const LABEL_JENIS_KELAMIN = { 'laki-laki': 'Laki-laki', perempuan: 'Perempuan' } as const;
 
+// Tur perkenalan Akun Pribadi: muncul sekali saat halaman ini pertama kali dibuka.
+// Di luar komponen supaya identitas array-nya tetap dan efek di TurFitur tidak jalan ulang tiap render.
+// Target menunjuk ke atribut data-tur pada elemen di bawah; menambah langkah cukup menambah entri di sini.
+const LANGKAH_TUR: LangkahTur[] = [
+    {
+        target: 'ringkasan',
+        posisi: 'bawah',
+        teks: (
+            <>
+                Ini <strong className="font-semibold">ringkasan akunmu!</strong> Kamu bisa melihat informasi profil dan pencapaian
+                belajarmu di sini!
+            </>
+        ),
+    },
+    {
+        target: 'xp',
+        posisi: 'bawah',
+        teks: (
+            <>
+                XP didapatkan dari aktivitas belajarmu.{' '}
+                <strong className="font-semibold">Semakin banyak XP, semakin tinggi levelmu!</strong>
+            </>
+        ),
+    },
+    {
+        target: 'point',
+        posisi: 'kiri',
+        teks: (
+            <>
+                Point berbeda dengan XP.{' '}
+                <strong className="font-semibold">Kumpulkan point untuk mendapatkan avatar favoritmu di toko avatar!</strong>
+            </>
+        ),
+    },
+    {
+        target: 'avatar',
+        posisi: 'kanan',
+        bulat: true,
+        teks: <>Gunakan point untuk mendapatkan avatar baru dan tampilkan karakter favoritmu!</>,
+    },
+];
+
 function Isian({ label, isi }: { label: string; isi: string }) {
     return (
         <div className="rounded-subtes bg-siswa-laman-awal px-4 py-3 transition duration-200 hover:bg-siswa-panel-fleksibel">
@@ -69,9 +112,12 @@ export default function ProfilUtama({ user, siswa, bergabung, level, badges, jum
 
             <div className="w-full space-y-4 font-poppins text-siswa-judul">
                 {/* Kartu Profil Utama: gaya sama dengan banner sapaan Beranda; XP dan Point memakai kotak angka yang sama. */}
-                <section className="flex animate-muncul-halus flex-wrap items-center gap-5 rounded-kartu bg-gradient-to-l from-siswa-banner-awal to-siswa-banner-akhir px-[26px] py-5 text-white shadow-kartu">
+                <section
+                    data-tur="ringkasan"
+                    className="flex animate-muncul-halus flex-wrap items-center gap-5 rounded-kartu bg-gradient-to-l from-siswa-banner-awal to-siswa-banner-akhir px-[26px] py-5 text-white shadow-kartu"
+                >
                     {/* Avatar aktif dan tombol Edit Avatar (UCS5: ikon pensil di pojok bawah avatar). */}
-                    <div className="relative shrink-0">
+                    <div data-tur="avatar" className="relative shrink-0">
                         <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border-2 border-white/50 bg-white/25 text-[26px] backdrop-blur-sm md:h-[72px] md:w-[72px]">
                             <GambarAvatar src={siswa.avatarUrl} nama={nama} className="h-full w-full object-cover p-1" />
                         </div>
@@ -111,8 +157,8 @@ export default function ProfilUtama({ user, siswa, bergabung, level, badges, jum
 
                     {/* Stat Total XP & Point */}
                     <dl className="flex shrink-0 gap-4">
-                        <KartuStat label="Total XP" nilai={angka(siswa.xp)} />
-                        <KartuStat label="Total Point" nilai={angka(siswa.point)} />
+                        <KartuStat label="Total XP" nilai={angka(siswa.xp)} tur="xp" />
+                        <KartuStat label="Total Point" nilai={angka(siswa.point)} tur="point" />
                     </dl>
                 </section>
 
@@ -216,6 +262,9 @@ export default function ProfilUtama({ user, siswa, bergabung, level, badges, jum
             </div>
 
             <DetailBadge badge={badgeDipilih} onClose={() => setBadgeDipilih(null)} />
+
+            {/* Tur perkenalan, jalan sekali per browser; penandanya disimpan di localStorage (lihat lib/turFitur.ts). */}
+            <TurFitur kunci="akun-pribadi" langkah={LANGKAH_TUR} />
         </>
     );
 }

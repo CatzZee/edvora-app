@@ -1,10 +1,11 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import JudulHalaman from '@/Components/Editor/JudulHalaman';
 import ModalUpload from '@/Components/Editor/ModalUpload';
 import PopupSukses from '@/Components/Editor/PopupSukses';
 import ToastGagal from '@/Components/Editor/ToastGagal';
 import EditorLayout from '@/Components/Layouts/EditorLayout';
+import TurFitur, { LangkahTur } from '@/Components/Tur/TurFitur';
 import { LABEL_STATUS, LABEL_TINGKAT, LABEL_TIPE } from '@/lib/labelSoal';
 import { BarisSoal, Halaman, HasilSimpanUpload, PilihanTopik, StatusSoal, SubtesEditor } from '@/types/editor';
 
@@ -29,6 +30,65 @@ const WARNA_STATUS: Record<StatusSoal, string> = {
     review: 'text-siswa-ubin-remedial',
 };
 
+// Tur perkenalan Bank Soal, muncul sekali saat editor pertama kali membuka halaman ini.
+// Kuncinya tidak memuat kode subtes: tur dijelaskan sekali saja, bukan diulang di tiap subtes.
+const TUR_KUNCI = 'editor-bank-soal';
+
+// Tiga langkah pertama selalu ada, karena elemennya tidak bergantung pada isi tabel.
+const LANGKAH_UMUM: LangkahTur[] = [
+    {
+        target: 'upload',
+        posisi: 'bawah',
+        teks: (
+            <>
+                Gunakan fitur ini untuk <strong className="font-semibold">menambahkan banyak soal</strong> sekaligus melalui file
+                Excel (.xlsx) sesuai template yang tersedia
+            </>
+        ),
+    },
+    {
+        target: 'tambah',
+        posisi: 'bawah',
+        teks: (
+            <>
+                Klik di sini untuk <strong className="font-semibold">menambahkan soal baru secara manual</strong> melalui formulir
+            </>
+        ),
+    },
+    {
+        target: 'tabel',
+        posisi: 'atas',
+        teks: (
+            <>
+                Tabel ini menampilkan{' '}
+                <strong className="font-semibold">kode, soal, topik, tipe soal, level kesulitan, hingga status publikasinya</strong>
+            </>
+        ),
+    },
+];
+
+// Dua langkah terakhir menyorot tombol di baris pertama tabel, jadi hanya dipakai kalau ada isinya.
+const LANGKAH_BARIS: LangkahTur[] = [
+    {
+        target: 'edit',
+        posisi: 'bawah',
+        teks: (
+            <>
+                Klik ikon <strong className="font-semibold">edit</strong> untuk mengubah informasi, isi, atau pembahasan soal
+            </>
+        ),
+    },
+    {
+        target: 'terbit',
+        posisi: 'bawah',
+        teks: (
+            <>
+                <strong className="font-semibold">Terbitkan soal</strong> agar dapat digunakan siswa dalam sesi latihan
+            </>
+        ),
+    },
+];
+
 // Bank soal satu subtes (desain "dashboard _ bank soal"): filter, tabel soal, upload Excel, dan tombol tambah soal.
 export default function BankSoal({ subtes, topikList, filter, soalList, adaTemplate, maksBarisUpload }: BankSoalProps) {
     const { flash } = usePage();
@@ -43,6 +103,11 @@ export default function BankSoal({ subtes, topikList, filter, soalList, adaTempl
             setSukses({ pesan: flash.sukses, lihatDraft: false });
         }
     }, [flash]);
+
+    // Tabel yang kosong tidak punya tombol edit/terbitkan, jadi dua langkah terakhir ikut dilewati
+    // dan penghitung langkah tetap jujur ("1 / 3", bukan "1 / 5" dengan dua langkah yang menyorot ruang kosong).
+    const adaBaris = soalList.data.length > 0;
+    const langkahTur = useMemo(() => (adaBaris ? [...LANGKAH_UMUM, ...LANGKAH_BARIS] : LANGKAH_UMUM), [adaBaris]);
 
     const terapkan = (ubah: Partial<Filter>) => {
         const baru = { ...filter, cari, ...ubah };
@@ -102,6 +167,7 @@ export default function BankSoal({ subtes, topikList, filter, soalList, adaTempl
                     <>
                         <button
                             type="button"
+                            data-tur="upload"
                             onClick={() => setUploadTerbuka(true)}
                             className="inline-flex items-center gap-2 rounded-lg bg-ujian-biru px-4 py-2 text-sm font-medium text-white shadow-panel transition hover:opacity-90"
                         >
@@ -112,6 +178,7 @@ export default function BankSoal({ subtes, topikList, filter, soalList, adaTempl
                         </button>
                         <Link
                             href={route('editor.soal.tambah', subtes.kode)}
+                            data-tur="tambah"
                             className="inline-flex items-center gap-2 rounded-lg bg-ujian-biru px-4 py-2 text-sm font-medium text-white shadow-panel transition hover:opacity-90"
                         >
                             <span className="text-lg leading-none">+</span> Tambah Soal
@@ -165,7 +232,7 @@ export default function BankSoal({ subtes, topikList, filter, soalList, adaTempl
                 </label>
             </div>
 
-            <div className="mt-5 overflow-x-auto rounded-kartu bg-white shadow-kartu">
+            <div data-tur="tabel" className="mt-5 overflow-x-auto rounded-kartu bg-white shadow-kartu">
                 <table className="w-full min-w-[820px] text-left text-sm text-siswa-judul">
                     <thead className="bg-surface-container text-base">
                         <tr>
@@ -179,7 +246,9 @@ export default function BankSoal({ subtes, topikList, filter, soalList, adaTempl
                         </tr>
                     </thead>
                     <tbody>
-                        {soalList.data.map((soal) => (
+                        {/* Tur menyorot tombol di baris pertama saja; baris lain tidak diberi penanda
+                            supaya data-tur tetap unik di halaman ini. */}
+                        {soalList.data.map((soal, baris) => (
                             <tr key={soal.kode} className="border-t border-siswa-garis-halus">
                                 <td className="whitespace-nowrap px-5 py-3 font-medium">{soal.kode}</td>
                                 <td className="max-w-[260px] truncate px-3 py-3" title={soal.teks}>
@@ -193,6 +262,7 @@ export default function BankSoal({ subtes, topikList, filter, soalList, adaTempl
                                     <div className="flex justify-center gap-3">
                                         <Link
                                             href={route('editor.soal.edit', soal.kode)}
+                                            data-tur={baris === 0 ? 'edit' : undefined}
                                             title="Edit soal"
                                             aria-label={`Edit soal ${soal.kode}`}
                                             className="flex h-8 w-8 items-center justify-center rounded-full bg-edvora-primary text-white transition hover:bg-edvora-primary-hover"
@@ -204,6 +274,7 @@ export default function BankSoal({ subtes, topikList, filter, soalList, adaTempl
                                         {/* Ikon kedua di desain: dipakai untuk publish / kembalikan ke Draft. */}
                                         <button
                                             type="button"
+                                            data-tur={baris === 0 ? 'terbit' : undefined}
                                             onClick={() => ubahStatus(soal)}
                                             title={soal.status === 'published' ? 'Kembalikan ke Draft' : 'Publish'}
                                             aria-label={soal.status === 'published' ? `Kembalikan soal ${soal.kode} ke Draft` : `Publish soal ${soal.kode}`}
@@ -255,6 +326,10 @@ export default function BankSoal({ subtes, topikList, filter, soalList, adaTempl
                 }
                 onTutup={() => setSukses(null)}
             />
+
+            {/* Tur perkenalan, jalan sekali per browser; penandanya disimpan di localStorage (lihat lib/turFitur.ts).
+                Ditahan selama pop-up sukses masih tampil supaya dua lapis gelap tidak bertumpuk. */}
+            <TurFitur kunci={TUR_KUNCI} langkah={langkahTur} aktif={sukses === null} />
         </EditorLayout>
     );
 }

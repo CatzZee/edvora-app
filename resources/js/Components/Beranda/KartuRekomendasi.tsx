@@ -33,7 +33,7 @@ export default function KartuRekomendasi({ rekomendasi }: { rekomendasi: TopikRe
             ) : (
                 <p className="mt-3 text-[14px] leading-[20px] text-siswa-teks">
                     Selesaikan latihan mode fleksibel untuk mendapatkan rekomendasi topik.
-                </p>
+                </p> 
             )}
         </section>
     );

@@ -11,6 +11,7 @@ import { LABEL_STATUS, LABEL_TINGKAT, LABEL_TIPE } from '@/lib/labelSoal';
 import { pesanServer } from '@/lib/pesanServer';
 import { IsianSoal, OpsiIsian, PilihanTopik, StatusSoal, SubtesEditor, TingkatKesulitan } from '@/types/editor';
 import { OpsiJawaban, TipeSoal } from '@/types/latihan';
+import BankSoalManual from '@/Components/Tur/BankSoalManual';
 
 const LABEL_OPSI = ['A', 'B', 'C', 'D', 'E'] as const;
 const URUTAN_TIPE: TipeSoal[] = ['pilihan_ganda', 'benar_salah', 'majemuk_tabel', 'isian_singkat'];
@@ -86,6 +87,7 @@ export default function FormSoal({ subtes, topikList, kodeSoal, soal, urlGambar 
         <EditorLayout breadcrumb={['Bank Soal', subtes.nama, edit ? `Edit ${kodeSoal}` : 'Tambah Soal Manual']} subtesAktif={subtes.kode}>
             <Head title={edit ? `Edit Soal ${kodeSoal}` : `Tambah Soal ${subtes.kode}`} />
             <ToastGagal pesan={gagal} onHilang={() => setGagal([])} />
+                <BankSoalManual aktif={!edit} />
 
             <Link href={route('editor.soal.index', subtes.kode)} className="mb-3 inline-flex items-center gap-2 text-sm text-siswa-teks hover:text-siswa-judul">
                 <span aria-hidden="true">‹</span> Bank Soal {subtes.nama}
@@ -106,7 +108,7 @@ export default function FormSoal({ subtes, topikList, kodeSoal, soal, urlGambar 
 
             <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
                 <div className="space-y-5">
-                    <Kartu judul="Informasi Soal" keterangan="Isi informasi umumnya">
+                    <Kartu turId="info-soal" judul="Informasi Soal" keterangan="Isi informasi umumnya">
                         <div className="grid gap-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
                             <Field label="Kode Soal" catatan="Read-Only">
                                 <input value={kodeSoal} readOnly className={`${KELAS_INPUT} bg-siswa-laman-awal font-semibold`} />
@@ -259,6 +261,7 @@ export default function FormSoal({ subtes, topikList, kodeSoal, soal, urlGambar 
                             Batal
                         </Link>
                         <button
+                            data-tur="simpan-draft" 
                             type="button"
                             disabled={processing}
                             onClick={() => simpan('draft')}
@@ -267,6 +270,7 @@ export default function FormSoal({ subtes, topikList, kodeSoal, soal, urlGambar 
                             Simpan sebagai Draft
                         </button>
                         <button
+                            data-tur="simpan-publish"  
                             type="button"
                             disabled={processing}
                             onClick={() => simpan('published')}
@@ -431,7 +435,7 @@ function Pratinjau({ data, urlGambar }: { data: IsianSoal; urlGambar: string }) 
     }));
 
     return (
-        <aside className="rounded-kartu bg-white px-5 py-5 shadow-kartu lg:sticky lg:top-[84px]">
+        <aside data-tur="pratinjau" className="rounded-kartu bg-white px-5 py-5 shadow-kartu lg:sticky lg:top-[84px]">
             <h2 className="text-xl font-semibold text-siswa-judul">Pratinjau</h2>
             <p className="text-xs text-siswa-teks">Tampilan soal bagi siswa</p>
             <span className="mt-3 inline-block rounded-md border border-siswa-garis-halus bg-siswa-badge-subtes px-2 py-0.5 text-xs font-semibold text-siswa-judul">
@@ -581,9 +585,9 @@ function UnggahGambar({ tujuan, onLink }: { tujuan: TujuanUnggah; onLink: (url: 
     );
 }
 
-function Kartu({ judul, keterangan, children }: { judul: string; keterangan?: string; children: ReactNode }) {
+function Kartu({ turId, judul, keterangan, children }: { turId?: string; judul: string; keterangan?: string; children: ReactNode }) {
     return (
-        <section className="rounded-kartu bg-white px-5 py-5 shadow-kartu md:px-6">
+        <section data-tur={turId} className="rounded-kartu bg-white px-5 py-5 shadow-kartu md:px-6">
             <h2 className="text-xl font-semibold text-siswa-judul">{judul}</h2>
             {keterangan && <p className="text-xs text-siswa-teks">{keterangan}</p>}
             <div className="mt-4 space-y-4">{children}</div>
