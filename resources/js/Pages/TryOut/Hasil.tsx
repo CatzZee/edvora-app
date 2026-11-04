@@ -2,6 +2,7 @@ import { ReactNode, useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import Modal from '@/Components/Modal';
 import KartuStat from '@/Components/Beranda/KartuStat';
+import InfoTooltip from '@/Components/Shared/InfoTooltip';
 import SiswaLayout from '@/Components/Layouts/SiswaLayout';
 import { warnaSubtes } from '@/Components/Latihan/KartuSubtes';
 import { formatWaktuWib } from '@/lib/waktu';
@@ -97,6 +98,19 @@ export default function Hasil({ paket, ditutup, skorTotal, perSubtes, xp, poin }
                     </div>
 
                     <dl className="flex shrink-0 gap-4">
+                        {skorTotal !== null && (
+                            <KartuStat
+                                label="Skor IRT"
+                                nilai={skorTotal.toLocaleString('id-ID')}
+                                tooltip={
+                                    <InfoTooltip
+                                        text="IRT adalah metode penilaian yang mempertimbangkan tingkat kesulitan soal. Jadi, skor tidak hanya dihitung berdasarkan jumlah jawaban benar"
+                                        placement="left"
+                                        tone="light"
+                                    />
+                                }
+                            />
+                        )}
                         <KartuStat label="XP" nilai={xp} awalan="+" />
                         <KartuStat label="Poin" nilai={poin} awalan="+" />
                     </dl>
