@@ -14,6 +14,9 @@ export default function Modal({
     // Opsional: ganti latar belakang dan panel tanpa mengubah tampilan modal lain.
     backdropClassName = 'bg-gray-500/75',
     panelClassName = 'rounded-lg',
+    // Opsional: panel selalu di tengah layar (atas-bawah dan kiri-kanan), juga di layar kecil.
+    // Memakai my-auto, bukan items-center, supaya modal yang lebih tinggi dari layar tetap bisa di-scroll dari atasnya.
+    pusatkan = false,
 }) {
     const close = () => {
         if (closeable) {
@@ -34,7 +37,7 @@ export default function Modal({
             <Dialog
                 as="div"
                 id="modal"
-                className="fixed inset-0 z-50 flex transform items-center overflow-y-auto px-4 py-6 transition-all sm:px-0"
+                className={`fixed inset-0 z-50 flex transform overflow-y-auto px-4 py-6 transition-all sm:px-0 ${pusatkan ? 'justify-center' : 'items-center'}`}
                 onClose={close}
             >
                 <TransitionChild
@@ -57,7 +60,9 @@ export default function Modal({
                     leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 >
                     <DialogPanel
-                        className={`mb-6 transform overflow-hidden bg-white shadow-xl transition-all sm:mx-auto sm:w-full ${panelClassName} ${maxWidthClass}`}
+                        className={`transform overflow-hidden bg-white shadow-xl transition-all ${
+                            pusatkan ? 'my-auto w-full' : 'mb-6 sm:mx-auto sm:w-full'
+                        } ${panelClassName} ${maxWidthClass}`}
                     >
                         {children}
                     </DialogPanel>
