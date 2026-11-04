@@ -3,6 +3,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { FormEvent, ReactNode, useState } from 'react';
 import SiswaLayout from '@/Components/Layouts/SiswaLayout';
 import Modal from '@/Components/Modal';
+import LiveTutorRiwayat from '@/Components/Tur/LiveTutorRiwayat';
 
 // Pilihan filter; kode sama dengan FilterRiwayat::JENIS dan ::STATUS di backend.
 const PILIHAN_JENIS = {
@@ -179,14 +180,14 @@ export default function Index({ title = 'Riwayat Pengerjaan', riwayat, filters }
             {/* Sidebar dan header dari SiswaLayout (persistent), sama dengan halaman siswa lain. */}
             <div className="w-full space-y-4 font-poppins text-siswa-judul">
                 {/* Banner: gaya sama dengan banner sapaan Beranda. */}
-                <section className="flex min-h-[83px] animate-muncul-halus flex-col justify-center rounded-kartu bg-gradient-to-l from-siswa-banner-awal to-siswa-banner-akhir px-[26px] py-4 shadow-kartu">
+                <section data-tur="riwayat-judul" className="flex min-h-[83px] animate-muncul-halus flex-col justify-center rounded-kartu bg-gradient-to-l from-siswa-banner-awal to-siswa-banner-akhir px-[26px] py-4 shadow-kartu">
                     <h1 className="text-[24px] font-semibold leading-tight text-white">Riwayat Pengerjaan</h1>
                     <p className="mt-1 text-[15px] leading-tight text-white">Akses riwayat pengerjaan mu disini!</p>
                 </section>
 
                 {kosong && !adaPencarian ? (
                     // UCS3 2a: belum pernah mengerjakan apa pun.
-                    <div className="mx-auto flex min-h-[260px] max-w-[820px] animate-muncul-halus items-center justify-center rounded-kartu bg-siswa-umpan-salah px-6 text-center shadow-kartu [animation-delay:100ms] [animation-fill-mode:both] md:mt-16 md:min-h-[310px]">
+                    <div data-tur="riwayat-kosong" className="mx-auto flex min-h-[260px] max-w-[820px] animate-muncul-halus items-center justify-center rounded-kartu bg-siswa-umpan-salah px-6 text-center shadow-kartu [animation-delay:100ms] [animation-fill-mode:both] md:mt-16 md:min-h-[310px]">
                         <p className="text-lg font-semibold text-siswa-umpan-salah-teks md:text-xl">Belum ada soal yang dikerjakan!</p>
                     </div>
                 ) : (
@@ -194,22 +195,26 @@ export default function Index({ title = 'Riwayat Pengerjaan', riwayat, filters }
                         {/* Filter dan pencarian */}
                         <section className="relative z-10 flex animate-muncul-halus flex-col gap-4 rounded-kartu bg-white px-[26px] py-5 shadow-kartu [animation-delay:80ms] [animation-fill-mode:both] md:flex-row md:items-end">
                             <div className="grid flex-1 gap-4 sm:grid-cols-2 md:max-w-[480px]">
-                                <Dropdown
-                                    label="Jenis Sesi"
-                                    nilai={filters.jenis}
-                                    pilihan={PILIHAN_JENIS}
-                                    onUbah={(kode) => ubahJenis(kode as JenisSesi | null)}
-                                />
-                                <Dropdown
-                                    label="Status Pengerjaan"
-                                    nilai={filters.status}
-                                    pilihan={PILIHAN_STATUS}
-                                    onUbah={(kode) => ubahStatus(kode as StatusFilter | null)}
-                                />
+                                <div data-tur="riwayat-filter-jenis">
+                                    <Dropdown
+                                        label="Jenis Sesi"
+                                        nilai={filters.jenis}
+                                        pilihan={PILIHAN_JENIS}
+                                        onUbah={(kode) => ubahJenis(kode as JenisSesi | null)}
+                                    />
+                                </div>
+                                <div data-tur="riwayat-filter-status">
+                                    <Dropdown
+                                        label="Status Pengerjaan"
+                                        nilai={filters.status}
+                                        pilihan={PILIHAN_STATUS}
+                                        onUbah={(kode) => ubahStatus(kode as StatusFilter | null)}
+                                    />
+                                </div>
                             </div>
 
                             {/* Pencarian: dikirim lewat tombol Cari atau Enter. */}
-                            <form onSubmit={kirimPencarian} className="flex w-full md:ml-auto md:max-w-[380px]">
+                            <form data-tur="riwayat-cari" onSubmit={kirimPencarian} className="flex w-full md:ml-auto md:max-w-[380px]">
                                 <input
                                     type="text"
                                     value={cari}
@@ -232,7 +237,7 @@ export default function Index({ title = 'Riwayat Pengerjaan', riwayat, filters }
                         </section>
 
                         {/* Tabel riwayat */}
-                        <section className="animate-muncul-halus overflow-hidden rounded-kartu bg-white shadow-kartu [animation-delay:160ms] [animation-fill-mode:both]">
+                        <section data-tur="riwayat-tabel" className="animate-muncul-halus overflow-hidden rounded-kartu bg-white shadow-kartu [animation-delay:160ms] [animation-fill-mode:both]">
                             <div className={`hidden border-b border-siswa-garis-halus bg-siswa-panel-fleksibel px-[26px] py-4 text-[15px] font-semibold text-siswa-judul-seksi ${KOLOM}`}>
                                 {/* Kolom teks rata kiri seperti isinya; kolom label dan tombol rata tengah. */}
                                 <span>Jenis Sesi</span>
@@ -244,7 +249,7 @@ export default function Index({ title = 'Riwayat Pengerjaan', riwayat, filters }
 
                             {kosong ? (
                                 // UCS3 2b: pencarian/filter tanpa hasil.
-                                <div className="animate-muncul-halus px-[26px] py-12 text-center">
+                                <div data-tur="riwayat-tanpa-hasil" className="animate-muncul-halus px-[26px] py-12 text-center">
                                     <p className="text-lg font-semibold text-siswa-umpan-salah-teks">Data tidak ditemukan!</p>
                                     <p className="mt-1 text-sm text-siswa-teks">Coba kata kunci atau filter lain.</p>
                                 </div>
@@ -262,6 +267,7 @@ export default function Index({ title = 'Riwayat Pengerjaan', riwayat, filters }
                                             </span>
 
                                             <span
+                                                data-tur={i === 0 ? 'riwayat-status' : undefined}
                                                 className={`justify-self-end rounded-full px-3 py-0.5 text-center text-xs font-semibold text-white shadow-panel md:w-[128px] md:justify-self-center ${
                                                     item.status === 'berjalan' ? 'bg-ujian-merah' : 'bg-ujian-hijau'
                                                 }`}
@@ -272,6 +278,7 @@ export default function Index({ title = 'Riwayat Pengerjaan', riwayat, filters }
                                             <div className="col-span-2 flex items-center gap-3 md:contents">
                                                 <button
                                                     type="button"
+                                                    data-tur={i === 0 ? 'riwayat-info' : undefined}
                                                     onClick={() => handleOpenInfo(item.id)}
                                                     aria-label={`Informasi ${item.jenis_pengerjaan} ${item.nama_materi}`}
                                                     title="Informasi Pengerjaan"
@@ -283,7 +290,7 @@ export default function Index({ title = 'Riwayat Pengerjaan', riwayat, filters }
                                                     </svg>
                                                 </button>
 
-                                                <div className="flex-1 md:flex-none">
+                                                <div data-tur={i === 0 ? 'riwayat-aksi' : undefined} className="flex-1 md:flex-none">
                                                     {item.status === 'berjalan' ? (
                                                         item.try_out_id ? (
                                                             <Link href={route('tryout.kerjakan', item.try_out_id)} className={`${KELAS_AKSI} bg-ujian-hijau`}>
@@ -313,7 +320,7 @@ export default function Index({ title = 'Riwayat Pengerjaan', riwayat, filters }
 
                         {/* Pagination 10 per halaman; tautannya sudah membawa pencarian dan filter (withQueryString). */}
                         {riwayat.last_page > 1 && (
-                            <nav aria-label="Halaman riwayat" className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                            <nav data-tur="riwayat-halaman" aria-label="Halaman riwayat" className="flex flex-wrap items-center justify-center gap-2 pt-2">
                                 {riwayat.links.map((link, i) => {
                                     const label = i === 0 ? '← Sebelumnya' : i === riwayat.links.length - 1 ? 'Berikutnya →' : link.label;
                                     const gaya = `flex h-9 min-w-9 items-center justify-center rounded-[10px] px-3 text-sm font-semibold shadow-panel transition duration-200 ${
@@ -341,6 +348,8 @@ export default function Index({ title = 'Riwayat Pengerjaan', riwayat, filters }
                     </>
                 )}
             </div>
+
+            <LiveTutorRiwayat adaData={!kosong} adaPencarian={adaPencarian} adaPagination={riwayat.last_page > 1} />
 
             {/* Modal Info Pengerjaan */}
             <Modal show={isModalOpen} maxWidth="lg" onClose={() => setIsModalOpen(false)} backdropClassName="bg-siswa-judul/30 backdrop-blur-[2px]" panelClassName="rounded-kartu">
