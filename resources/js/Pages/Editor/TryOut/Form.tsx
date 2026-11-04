@@ -3,6 +3,7 @@ import { FormEvent } from 'react';
 import JudulHalaman from '@/Components/Editor/JudulHalaman';
 import EditorLayout from '@/Components/Layouts/EditorLayout';
 import FlashPesan from '@/Components/Editor/FlashPesan';
+import PaketSoalTO from '@/Components/Tur/PaketSoalTO';
 
 interface Baris {
     subtes_id: string;
@@ -59,6 +60,7 @@ export default function FormPaketTryOut({ paket, baris }: FormPaketProps) {
     return (
         <EditorLayout breadcrumb={['Paket Try Out', edit ? 'Edit Paket' : 'Buat Paket']}>
             <Head title={edit ? 'Edit Paket Try Out' : 'Buat Paket Try Out'} />
+            <PaketSoalTO aktif={!edit} />
 
             <JudulHalaman
                 atas="Mengelola Paket Try Out"
@@ -93,7 +95,16 @@ export default function FormPaketTryOut({ paket, baris }: FormPaketProps) {
                             {errors.mulai_at && <p className="mt-1 text-xs text-[#E53935]">{errors.mulai_at}</p>}
                         </div>
                         <div>
+                            <div className="mb-1 flex items-center justify-between">      
                             <label className="mb-1 block text-sm font-semibold text-siswa-judul">Selesai</label>
+                            <span                                                                     
+                                data-tur="info-jadwal"
+                                aria-label="Info jadwal"
+                                className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-siswa-teks/40 text-[10px] font-bold leading-none text-white"
+                            >
+                                i
+                            </span>
+                            </div>
                             <input
                                 type="datetime-local"
                                 value={data.selesai_at}
