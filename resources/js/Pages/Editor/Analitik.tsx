@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { ReactNode } from 'react';
 import EditorLayout from '@/Components/Layouts/EditorLayout';
+import InfoTooltip from '@/Components/Editor/InfoTooltip';
 
 type Tingkat = 'mudah' | 'sedang' | 'sulit';
 
@@ -92,6 +93,7 @@ function IsiAnalitik({ data }: { data: DataAnalitik }) {
                     keterangan={`${persenPublished}% dari semua soal`}
                     latarIkon="bg-siswa-ikon-latihan text-siswa-subtes"
                     ikon={<path d="M7 3h7l5 5v13H7zM14 3v5h5M10 12h6M10 16h6" />}
+                    tooltip="Menampilkan jumlah soal yang telah diterbitkan dan dapat digunakan oleh siswa"
                 />
                 <KartuAngka
                     label="Jumlah Semua Soal"
@@ -106,6 +108,7 @@ function IsiAnalitik({ data }: { data: DataAnalitik }) {
                     keterangan="Menunggu dipublish"
                     latarIkon="bg-siswa-hint-latar text-siswa-ubin-remedial"
                     ikon={<path d="M12 7v5l3 2M3.5 12a8.5 8.5 0 102.5-6M3 4v4h4" />}
+                    tooltip="Menampilkan jumlah soal yang masih berstatus draft dan belum diterbitkan"
                 />
                 <KartuAngka
                     label="Stok Soal"
@@ -119,7 +122,10 @@ function IsiAnalitik({ data }: { data: DataAnalitik }) {
 
             <div className="mt-6 grid gap-5 lg:grid-cols-2">
                 <section className="rounded-kartu bg-white p-6 shadow-kartu">
-                    <h2 className="text-xl font-semibold text-siswa-judul">HeatMap Topik Tersulit</h2>
+                    <h2 className="flex items-center gap-2 text-xl font-semibold text-siswa-judul">
+                        <span>HeatMap Topik Tersulit</span>
+                        <InfoTooltip text="Heatmap menunjukkan tingkat pemahaman siswa pada setiap topik. Semakin rendah persentasenya, semakin sulit topik tersebut dipahami siswa" />
+                    </h2>
                     <p className="text-sm text-siswa-teks">
                         Akurasi seluruh siswa pada {tanggal(data.rentangHeatmap.dari)} – {tanggal(data.rentangHeatmap.sampai)}
                     </p>
@@ -146,7 +152,10 @@ function IsiAnalitik({ data }: { data: DataAnalitik }) {
                 </section>
 
                 <section className="rounded-kartu bg-white p-6 shadow-kartu">
-                    <h2 className="text-xl font-semibold text-siswa-judul">Rata-Rata Pemahaman Per Subtest</h2>
+                    <h2 className="flex items-center gap-2 text-xl font-semibold text-siswa-judul">
+                        <span>Rata-Rata Pemahaman Per Subtest</span>
+                        <InfoTooltip text="Diagram ini menampilkan rata-rata pemahaman siswa pada setiap subtes. Gunakan data ini untuk mengevaluasi materi dan kualitas soal" />
+                    </h2>
                     <p className="text-xs text-siswa-teks">Rata-rata pemahaman siswa per subtest</p>
 
                     {adaPenguasaan.length === 0 ? (
@@ -269,6 +278,7 @@ function KartuAngka({
     judul,
     latarIkon,
     ikon,
+    tooltip,
 }: {
     label: string;
     angka: number;
@@ -276,12 +286,16 @@ function KartuAngka({
     judul?: string;
     latarIkon: string;
     ikon: ReactNode;
+    tooltip?: string;
 }) {
     return (
         <div className="rounded-kartu bg-white px-4 py-4 shadow-kartu" title={judul}>
             {/* Label satu baris di semua kartu, supaya angka keempat kartu sejajar. */}
             <div className="flex items-start justify-between gap-2">
-                <p className="whitespace-nowrap text-[13px] uppercase text-siswa-teks">{label}</p>
+                <div className="flex items-center gap-1.5 min-w-0">
+                    <p className="whitespace-nowrap text-[13px] uppercase text-siswa-teks">{label}</p>
+                    {tooltip && <InfoTooltip text={tooltip} />}
+                </div>
                 <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${latarIkon}`}>
                     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         {ikon}

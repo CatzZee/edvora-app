@@ -1,8 +1,10 @@
-import { ReactNode } from 'react';
+import { ReactNode, useRef } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import KartuStat from '@/Components/Beranda/KartuStat';
 import TabMode from '@/Components/Latihan/TabMode';
 import SiswaLayout from '@/Components/Layouts/SiswaLayout';
+import InfoTooltip from '@/Components/Shared/InfoTooltip';
+import PeringkatOnboarding from '@/Components/TryOut/PeringkatOnboarding';
 import { BarisPeringkat, JenisPeringkat } from '@/types/tryout';
 
 interface PeringkatProps {
@@ -170,6 +172,10 @@ const kelasTombolHalaman =
 
 // Peringkat Try Out (RANCANGAN-peringkat-pembahasan-tryout.md 5.4), mengikuti Figma node 1234:2372.
 export default function Peringkat(propsServer: PeringkatProps) {
+    const tabRef = useRef<HTMLDivElement>(null);
+    const podiumRef = useRef<HTMLDivElement>(null);
+    const daftarRef = useRef<HTMLElement>(null);
+
     // DATA DUMMY: ?dummy=1 mengganti data peringkat dengan contoh; paket tetap dari server supaya tautan benar.
     const dummy = modeDummy();
     const { paket, skorSaya, jenis, tujuanSaya, podium, daftar, posisiSaya, halaman } = dummy
@@ -203,12 +209,22 @@ export default function Peringkat(propsServer: PeringkatProps) {
                     </div>
 
                     <dl className="flex shrink-0 gap-4">
-                        <KartuStat label="Skor IRT" nilai={angka(skorSaya)} />
+                        <KartuStat
+                            label="Skor IRT"
+                            nilai={angka(skorSaya)}
+                            tooltip={
+                                <InfoTooltip
+                                    text="IRT adalah metode penilaian yang mempertimbangkan tingkat kesulitan soal. Jadi, skor tidak hanya dihitung berdasarkan jumlah jawaban benar"
+                                    placement="left"
+                                    tone="light"
+                                />
+                            }
+                        />
                     </dl>
                 </section>
 
                 {/* Pindah tab membuka halaman peringkat jenis itu (halaman 1), sama seperti tautan sebelumnya. */}
-                <div className="mx-auto max-w-[420px] animate-muncul-halus [animation-delay:60ms] [animation-fill-mode:both]">
+                <div ref={tabRef} className="mx-auto max-w-[420px] animate-muncul-halus [animation-delay:60ms] [animation-fill-mode:both]">
                     <TabMode
                         ukuran="kecil"
                         label="Jenis pemeringkatan"
@@ -253,7 +269,7 @@ export default function Peringkat(propsServer: PeringkatProps) {
                         <h2 id="judul-podium" className="sr-only">
                             Tiga Teratas
                         </h2>
-                        <div className="mx-auto grid max-w-[760px] grid-cols-1 items-end gap-4 sm:grid-cols-3 md:gap-5">
+                        <div ref={podiumRef} className="mx-auto grid max-w-[760px] grid-cols-1 items-end gap-4 sm:grid-cols-3 md:gap-5">
                             {podium.map((b, i) => (
                                 <KartuPodium key={i} baris={b} posisi={i} khusus={khusus} />
                             ))}
@@ -262,7 +278,7 @@ export default function Peringkat(propsServer: PeringkatProps) {
                 )}
 
                 {daftar.length > 0 && (
-                    <section className="animate-muncul-halus overflow-hidden rounded-kartu bg-white shadow-kartu [animation-delay:300ms] [animation-fill-mode:both]">
+                    <section ref={daftarRef} className="animate-muncul-halus overflow-hidden rounded-kartu bg-white shadow-kartu [animation-delay:300ms] [animation-fill-mode:both]">
                         {/* Di layar sempit tabel bisa digeser ke samping, kolom tidak berdesakan. */}
                         <div className="overflow-x-auto">
                             <table className={`w-full text-left text-[14px] ${khusus ? 'min-w-[420px]' : 'min-w-[680px]'}`}>
@@ -315,6 +331,8 @@ export default function Peringkat(propsServer: PeringkatProps) {
                         </nav>
                     )}
                 </div>
+
+                <PeringkatOnboarding tabRef={tabRef} podiumRef={podiumRef} daftarRef={daftarRef} />
             </div>
         </>
     );

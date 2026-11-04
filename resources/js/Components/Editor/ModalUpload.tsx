@@ -330,8 +330,9 @@ interface StatusGambar {
     pesan?: string;
 }
 
-// Gambar dikirim satu file per request (batas upload PHP), tiga sekaligus.
-const UNGGAH_SEKALIGUS = 3;
+// Gambar dikirim satu file per request (batas upload PHP), satu per satu. Request bersamaan bisa gagal (HTTP 500)
+// di hosting yang memakai pooler Supabase mode transaksi.
+const UNGGAH_SEKALIGUS = 1;
 
 // Setelah unggah selesai, gambar yang bermasalah dinaikkan ke atas daftar supaya terlihat tanpa membuka semuanya.
 const URUTAN_STATUS: Record<StatusGambar['status'], number> = { gagal: 0, 'tidak-ada': 1, mengunggah: 2, menunggu: 3, berhasil: 4 };
