@@ -8,6 +8,7 @@ import PanelMode from '@/Components/Latihan/PanelMode';
 import PengaturJumlahSoal from '@/Components/Latihan/PengaturJumlahSoal';
 import TabPilihMode from '@/Components/Latihan/TabMode';
 import TombolMulai from '@/Components/Latihan/TombolMulai';
+import LiveTutorMode from '@/Components/Tur/LiveTutorMode';
 import { LabelPenguasaan } from '@/types/latihan';
 
 type TabMode = 'fleksibel' | 'simulasi' | 'remedial';
@@ -76,7 +77,9 @@ export default function PilihMode({ subtes, topikList, batasSoal, simulasi, reme
             <Head title={`Pilih Mode - ${subtes.nama}`} />
 
             <div className="w-full pt-[18px] font-poppins">
-                <KartuInfoSubtes kode={subtes.kode} nama={subtes.nama} deskripsi={subtes.deskripsi} jumlahTopik={subtes.jumlahTopik} />
+                <div data-tur="mode-subtes">
+                    <KartuInfoSubtes kode={subtes.kode} nama={subtes.nama} deskripsi={subtes.deskripsi} jumlahTopik={subtes.jumlahTopik} />
+                </div>
 
                 {pesanError && (
                     <div role="alert" className="mt-5 rounded-lg border border-[#E86565] bg-[#FDECEC] px-4 py-3 text-sm font-medium text-[#8A2B2B]">
@@ -87,7 +90,7 @@ export default function PilihMode({ subtes, topikList, batasSoal, simulasi, reme
                 <h2 className="mt-[31px] text-[20px] font-semibold leading-tight text-siswa-judul-seksi">Pilih Mode Latihan</h2>
                 <p className="mt-[6px] text-[14px] font-medium leading-tight text-siswa-teks">Pilih mode latihan yang sesuai dengan kebutuhanmu!</p>
 
-                <div className="mt-4">
+                <div className="mt-4" data-tur="mode-tab">
                     <TabPilihMode
                         aktif={tab}
                         onPilih={setTab}
@@ -105,19 +108,21 @@ export default function PilihMode({ subtes, topikList, batasSoal, simulasi, reme
                 <div key={tab} className="animate-muncul-halus motion-reduce:animate-none">
                 {tab === 'fleksibel' && (
                     <section className="mt-[14px]">
-                        <PanelMode
-                            varian="fleksibel"
-                            ikon={<img src="/images/ikon/mode-fleksibel.png" alt="" className="h-[95.188px] w-[53.917px] object-contain" />}
-                            judul="Mode Fleksibel"
-                            keterangan="Pilih topik dan jumlah soal sesuai kebutuhan. Pembahasan soal akan langsung muncul setelah kamu menyimpan jawaban."
-                        />
+                        <div data-tur="mode-penjelasan">
+                            <PanelMode
+                                varian="fleksibel"
+                                ikon={<img src="/images/ikon/mode-fleksibel.png" alt="" className="h-[95.188px] w-[53.917px] object-contain" />}
+                                judul="Mode Fleksibel"
+                                keterangan="Pilih topik dan jumlah soal sesuai kebutuhan. Pembahasan soal akan langsung muncul setelah kamu menyimpan jawaban."
+                            />
+                        </div>
 
                         <h3 className="mt-[14px] text-[20px] font-semibold leading-tight text-siswa-judul-seksi">Pilih Topik</h3>
                         <p className="mt-[6px] text-[14px] font-medium leading-tight text-siswa-teks">
                             Pilih satu atau beberapa topik yang ingin kamu kerjakan!
                         </p>
 
-                        <div className="mt-5 space-y-3 rounded-panel bg-siswa-panel-fleksibel py-[21px] pl-[25px] pr-6 shadow-kartu">
+                        <div data-tur="mode-topik" className="mt-5 space-y-3 rounded-panel bg-siswa-panel-fleksibel py-[21px] pl-[25px] pr-6 shadow-kartu">
                             <BarisTopik label={`Semua Topik (${topikList.length} Topik)`} dipilih={semuaDipilih} onUbah={pilihSemua} />
 
                             {topikList.map((topik) => (
@@ -131,7 +136,7 @@ export default function PilihMode({ subtes, topikList, batasSoal, simulasi, reme
                             ))}
                         </div>
 
-                        <div className="mt-[21px]">
+                        <div className="mt-[21px]" data-tur="mode-jumlah">
                             <PengaturJumlahSoal
                                 nilai={jumlahSoal}
                                 bisaKurang={jumlahSoal > batasSoal.min}
@@ -141,7 +146,7 @@ export default function PilihMode({ subtes, topikList, batasSoal, simulasi, reme
                             />
                         </div>
 
-                        <div className="mt-[18px]">
+                        <div className="mt-[18px]" data-tur="mode-mulai">
                             <TombolMulai
                                 onClick={() => mulai({ mode: 'fleksibel', topikIds: topikDipilih, jumlahSoal })}
                                 disabled={topikDipilih.length === 0 || memuat}
@@ -154,64 +159,76 @@ export default function PilihMode({ subtes, topikList, batasSoal, simulasi, reme
 
                 {tab === 'simulasi' && (
                     <section className="mt-[14px] space-y-[18px]">
-                        <PanelMode
-                            varian="simulasi"
-                            ikon={<img src="/images/ikon/mode-simulasi.svg" alt="" width={74} height={74} />}
-                            judul="Mode Simulasi"
-                            keterangan="Kerjakan paket soal dengan waktu terbatas seperti UTBK. Pembahasan akan muncul setelah semua soal selesai dikerjakan atau waktu telah habis."
-                        >
-                            {/* 1 kolom saat sidebar tampil di layar sempit (md), 3 kolom di layar lebar. */}
-                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:grid-cols-1 xl:grid-cols-3">
-                                <KotakInfo varian="simulasi" ikon="/images/ikon/soal.png" judul="Jumlah Soal" isi={`${simulasi.jumlahSoal} Soal`} />
-                                <KotakInfo
-                                    varian="simulasi"
-                                    ikon="/images/ikon/waktu.png"
-                                    judul="Waktu Pengerjaan"
-                                    isi={`${simulasi.waktuMenit.toLocaleString('id-ID')} Menit`}
-                                />
+                        <div data-tur="mode-penjelasan">
+                            <PanelMode
+                                varian="simulasi"
+                                ikon={<img src="/images/ikon/mode-simulasi.svg" alt="" width={74} height={74} />}
+                                judul="Mode Simulasi"
+                                keterangan="Kerjakan paket soal dengan waktu terbatas seperti UTBK. Pembahasan akan muncul setelah semua soal selesai dikerjakan atau waktu telah habis."
+                            >
+                                {/* 1 kolom saat sidebar tampil di layar sempit (md), 3 kolom di layar lebar. */}
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:grid-cols-1 xl:grid-cols-3">
+                                    <KotakInfo varian="simulasi" ikon="/images/ikon/soal.png" judul="Jumlah Soal" isi={`${simulasi.jumlahSoal} Soal`} />
+                                    <KotakInfo
+                                        varian="simulasi"
+                                        ikon="/images/ikon/waktu.png"
+                                        judul="Waktu Pengerjaan"
+                                        isi={`${simulasi.waktuMenit.toLocaleString('id-ID')} Menit`}
+                                    />
                                 <KotakInfo varian="simulasi" ikon="/images/ikon/daftar.png" judul="Topik" isi={`Semua Topik (${subtes.jumlahTopik})`} />
                             </div>
                         </PanelMode>
+                        </div>
 
-                        <TombolMulai onClick={() => mulai({ mode: 'simulasi' })} disabled={memuat} />
+                        <div data-tur="mode-mulai">
+                            <TombolMulai onClick={() => mulai({ mode: 'simulasi' })} disabled={memuat} />
+                        </div>
                     </section>
                 )}
 
                 {tab === 'remedial' &&
                     (remedial.jumlahSoal === 0 ? (
                         <section className="mt-[14px]">
-                            <PanelMode
-                                varian="terkunci"
-                                ikon={<img src="/images/ikon/gembok.png" alt="" className="h-[50.742px] w-[50.742px] object-contain" />}
-                                judul="Remedial Belum Tersedia!"
-                                keterangan="Tidak ada soal yang perlu diperbaiki pada subtes ini. Kerjakan soal mode fleksibel atau simulasi terlebih dahulu."
-                            />
+                            <div data-tur="mode-penjelasan">
+                                <PanelMode
+                                    varian="terkunci"
+                                    ikon={<img src="/images/ikon/gembok.png" alt="" className="h-[50.742px] w-[50.742px] object-contain" />}
+                                    judul="Remedial Belum Tersedia!"
+                                    keterangan="Tidak ada soal yang perlu diperbaiki pada subtes ini. Kerjakan soal mode fleksibel atau simulasi terlebih dahulu."
+                                />
+                            </div>
                         </section>
                     ) : (
                         <section className="mt-[14px] space-y-[18px]">
-                            <PanelMode
-                                varian="remedial"
-                                ikon={<img src="/images/ikon/mode-remedial.png" alt="" className="h-[67.543px] w-[64.557px] object-contain" />}
-                                judul="Mode Remedial"
-                                keterangan="Kerjakan ulang soal yang pernah kamu jawab salah pada subtes ini. Soal diambil dari topik yang masih perlu kamu kuasai."
-                            >
-                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2">
-                                    <KotakInfo varian="remedial" ikon="/images/ikon/daftar.png" judul="Topik" isi="Semua topik" />
-                                    <KotakInfo varian="remedial" ikon="/images/ikon/soal.png" judul="Jumlah Soal" isi={`${remedial.jumlahSoal} Soal`} />
-                                </div>
+                            <div data-tur="mode-penjelasan">
+                                <PanelMode
+                                    varian="remedial"
+                                    ikon={<img src="/images/ikon/mode-remedial.png" alt="" className="h-[67.543px] w-[64.557px] object-contain" />}
+                                    judul="Mode Remedial"
+                                    keterangan="Kerjakan ulang soal yang pernah kamu jawab salah pada subtes ini. Soal diambil dari topik yang masih perlu kamu kuasai."
+                                >
+                                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2">
+                                        <KotakInfo varian="remedial" ikon="/images/ikon/daftar.png" judul="Topik" isi="Semua topik" />
+                                        <KotakInfo varian="remedial" ikon="/images/ikon/soal.png" judul="Jumlah Soal" isi={`${remedial.jumlahSoal} Soal`} />
+                                    </div>
+    
+                                    {remedial.jumlahSoal > remedial.batasSesi && (
+                                        <p className="mt-3 text-[12px] font-medium text-siswa-teks">
+                                            Satu sesi berisi {remedial.batasSesi} soal yang paling lama menunggu. Sisanya dikerjakan di sesi berikutnya.
+                                        </p>
+                                    )}
+                                </PanelMode>
+                            </div>
 
-                                {remedial.jumlahSoal > remedial.batasSesi && (
-                                    <p className="mt-3 text-[12px] font-medium text-siswa-teks">
-                                        Satu sesi berisi {remedial.batasSesi} soal yang paling lama menunggu. Sisanya dikerjakan di sesi berikutnya.
-                                    </p>
-                                )}
-                            </PanelMode>
-
-                            <TombolMulai onClick={() => mulai({ mode: 'remedial' })} disabled={memuat} />
+                            <div data-tur="mode-mulai">
+                                <TombolMulai onClick={() => mulai({ mode: 'remedial' })} disabled={memuat} />
+                            </div>
                         </section>
                     ))}
                 </div>
             </div>
+
+            <LiveTutorMode mode={tab} remedialTersedia={remedial.jumlahSoal > 0} />
         </>
     );
 }
