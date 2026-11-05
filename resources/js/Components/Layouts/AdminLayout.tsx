@@ -1,5 +1,6 @@
 import { usePage } from '@inertiajs/react';
 import { PropsWithChildren, useEffect, useState } from 'react';
+import { useMenuGeser } from '@/lib/useMenuGeser';
 import SidebarSiswa, { MenuSidebar } from './SidebarSiswa';
 import TopbarSiswa from './TopbarSiswa';
 
@@ -17,6 +18,7 @@ export default function AdminLayout({ judul, children }: PropsWithChildren<Admin
 
     const [pesanSukses, setPesanSukses] = useState<string | null>(typeof flash.sukses === 'string' ? flash.sukses : null);
     const [pesanError, setPesanError] = useState<string | null>(typeof flash.error === 'string' ? flash.error : null);
+    const [menuTerbuka, setMenuTerbuka] = useMenuGeser();
 
     // Perbarui notifikasi ketika flash props berubah
     useEffect(() => {
@@ -44,10 +46,10 @@ export default function AdminLayout({ judul, children }: PropsWithChildren<Admin
     return (
         // Latar, sidebar, topbar, dan jarak isi sama dengan SiswaLayout, supaya admin dan siswa terasa satu aplikasi.
         <div className="flex min-h-screen w-full bg-gradient-to-r from-siswa-laman-awal from-[24.711%] to-siswa-laman-akhir font-poppins text-siswa-judul antialiased">
-            <SidebarSiswa menu={MENU_ADMIN} rutBeranda="admin.index" />
+            <SidebarSiswa menu={MENU_ADMIN} rutBeranda="admin.index" terbuka={menuTerbuka} onTutup={() => setMenuTerbuka(false)} />
 
             <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-                <TopbarSiswa inisial={inisialNama} rutBeranda="admin.index" />
+                <TopbarSiswa inisial={inisialNama} rutBeranda="admin.index" onBukaMenu={() => setMenuTerbuka(true)} />
 
                 {/* Notifikasi melayang di atas tengah; hilang sendiri setelah 4 detik. */}
                 {pesanSukses && <Notifikasi jenis="sukses" pesan={pesanSukses} />}

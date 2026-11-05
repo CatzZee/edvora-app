@@ -28,7 +28,7 @@ export default function Dashboard({ ringkasan, tryOutDibuka, stokSubtes }: Dashb
 
             <JudulHalaman atas="Editor" judul="Dashboard" keterangan="Pantau stok soal dan paket Try Out" />
 
-            <div className="grid gap-5 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
                 <KartuAngka
                     label="Total Soal"
                     angka={total}
@@ -44,20 +44,21 @@ export default function Dashboard({ ringkasan, tryOutDibuka, stokSubtes }: Dashb
                 />
             </div>
 
-            <section className="mt-6 rounded-kartu bg-white p-6 shadow-kartu">
+            <section className="mt-6 rounded-kartu bg-white p-4 shadow-kartu sm:p-6">
                 <h2 className="text-xl font-semibold text-siswa-judul">Stok per Subtes</h2>
 
-                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                {/* grid-cols-1 = minmax(0,1fr): tanpa ini kolom ikut melebar mengikuti nama subtes dan mendorong halaman keluar layar di HP. */}
+                <div className="mt-4 grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
                     {stokSubtes.map((s) => (
                         <Link
                             key={s.kode}
                             href={route('editor.soal.index', s.kode)}
-                            className="rounded-2xl border border-siswa-garis-halus px-4 py-3 transition hover:-translate-y-0.5 hover:shadow-md"
+                            className="min-w-0 rounded-2xl border border-siswa-garis-halus px-4 py-3 transition hover:-translate-y-0.5 hover:shadow-md"
                         >
                             <span className="rounded-md border border-siswa-garis-halus bg-siswa-badge-subtes px-1.5 py-0.5 text-xs font-bold text-siswa-judul">{s.kode}</span>
-                            <div className="mt-2 flex items-center justify-between gap-3">
+                            <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                                 <div className="min-w-0">
-                                    <p className="truncate font-semibold text-siswa-judul">{s.nama}</p>
+                                    <p className="font-semibold text-siswa-judul sm:truncate">{s.nama}</p>
                                     <p className="text-xs text-siswa-teks">{s.jumlahTopik} Topik</p>
                                 </div>
                                 <div className="flex shrink-0 items-center gap-3 text-xs">
@@ -84,13 +85,13 @@ export default function Dashboard({ ringkasan, tryOutDibuka, stokSubtes }: Dashb
 
 function KartuAngka({ label, angka, keterangan, latarIkon, ikon }: { label: string; angka: number; keterangan?: string; latarIkon: string; ikon: ReactNode }) {
     return (
-        <div className="flex items-center justify-between rounded-kartu bg-white px-6 py-5 shadow-kartu">
-            <div>
+        <div className="flex min-w-0 items-center justify-between gap-3 rounded-kartu bg-white px-5 py-4 shadow-kartu sm:px-6 sm:py-5">
+            <div className="min-w-0">
                 <p className="text-sm text-siswa-teks">{label}</p>
                 <p className="text-3xl font-bold text-siswa-judul">{angka.toLocaleString('id-ID')}</p>
                 {keterangan && <p className="text-xs text-siswa-teks">{keterangan}</p>}
             </div>
-            <span className={`flex h-16 w-16 items-center justify-center rounded-full ${latarIkon}`}>
+            <span className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full sm:h-16 sm:w-16 ${latarIkon}`}>
                 <svg className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     {ikon}
                 </svg>

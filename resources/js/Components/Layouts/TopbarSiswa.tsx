@@ -43,13 +43,14 @@ function kembali(rutBeranda: string) {
 interface TopbarSiswaProps {
     inisial: string;
     rutBeranda?: string; // tujuan ikon rumah; admin memakai 'admin.index'
+    onBukaMenu?: () => void; // buka drawer menu HP
 }
 
 /**
- * Topbar halaman siswa: tombol kembali (hanya di sub-halaman) dan pintasan ke Beranda di kiri, avatar pengguna di kanan.
+ * Topbar halaman siswa: hamburger menu (HP), tombol kembali (hanya di sub-halaman), dan pintasan ke Beranda di kiri, avatar pengguna di kanan.
  * Avatar membuka menu berisi nama, email, dan tombol Keluar. Akun Pribadi dibuka lewat sidebar.
  */
-export default function TopbarSiswa({ inisial, rutBeranda = 'dashboard' }: TopbarSiswaProps) {
+export default function TopbarSiswa({ inisial, rutBeranda = 'dashboard', onBukaMenu }: TopbarSiswaProps) {
     // usePage: SiswaLayout persisten, jadi topbar perlu dirender ulang setiap pindah halaman untuk mengecek rute aktif.
     const auth = usePage<any>().props.auth;
     const user = auth?.user;
@@ -77,6 +78,20 @@ export default function TopbarSiswa({ inisial, rutBeranda = 'dashboard' }: Topba
         // z-30: kartu yang di-hover (transform) membuat lapisan baru, jadi topbar perlu di atasnya.
         <header className="sticky top-0 z-30 flex h-[60px] shrink-0 items-center justify-between bg-white px-6 font-poppins shadow-kartu md:pl-[52px] md:pr-[38px]">
             <div className="flex min-w-0 items-center gap-3">
+                {/* Hamburger menu HP: buka drawer sidebar. */}
+                {onBukaMenu && (
+                    <button
+                        type="button"
+                        onClick={onBukaMenu}
+                        aria-label="Buka menu"
+                        className="flex h-10 w-10 items-center justify-center rounded-lg text-siswa-judul transition hover:bg-siswa-laman-awal md:hidden"
+                    >
+                        <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true">
+                            <path d="M4 7h16M4 12h16M4 17h16" />
+                        </svg>
+                    </button>
+                )}
+
                 {subHalaman && (
                     <button
                         type="button"

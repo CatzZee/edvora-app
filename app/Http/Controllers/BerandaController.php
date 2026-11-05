@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Pengerjaan;
 use App\Models\Siswa;
 use App\Models\Subtes;
 use App\Services\LevelXp;
@@ -23,6 +24,11 @@ class BerandaController extends Controller
         // subtes_id => topik beserta tahap dan skor siswa, dalam satu query untuk semua subtes.
         $topikPerSubtes = $ringkasan->perSubtes($userId);
 
+        // Tur ditampilkan bila created_at belum lewat 7 hari DAN belum punya riwayat pengerjaan.
+        // created_at null (akun lama) dianggap false. Query riwayat hanya jalan untuk akun baru (&& berhenti lebih awal).
+        $akunBaru = Auth::user()->created_at?->gt(now()->subDays(7)) ?? false;
+        $tampilkanTur = $akunBaru && ! Pengerjaan::where('user_id', $userId)->exists();
+
         return Inertia::render('Dashboard/Siswa', [
             'level' => LevelXp::dariXp((int) ($siswa?->xp ?? 0))['level'],
             'poin' => (int) ($siswa?->point ?? 0),
@@ -35,6 +41,7 @@ class BerandaController extends Controller
             'penguasaanSubtes' => $subtesList
                 ->map(fn (Subtes $subtes) => $this->penguasaanSubtes($subtes, $topikPerSubtes[$subtes->id] ?? []))
                 ->values(),
+            'tampilkanTur' => $tampilkanTur,
         ]);
     }
 
