@@ -1,3 +1,4 @@
+import { usePage } from '@inertiajs/react';
 import { CSSProperties, ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { sudahLihatTur, tandaiTurSelesai } from '@/lib/turFitur';
 
@@ -25,6 +26,8 @@ interface TurFiturProps {
     langkah: LangkahTur[];
     /** Tunda tur, mis. sampai data halaman siap. Bawaan: true. */
     aktif?: boolean;
+    /** Dipanggil setelah tur ditutup (Selesai, Lewati, atau Esc), mis. untuk mematikan `aktif` supaya tur bisa dipicu lagi. */
+    onTutup?: () => void;
 }
 
 interface Sorot {
@@ -167,7 +170,10 @@ function TombolPanah({ arah, onClick, nonaktif }: { arah: 'kiri' | 'kanan'; onCl
  *
  * Elemen yang disorot ditandai di halaman dengan atribut data-tur, mis. <section data-tur="ringkasan">.
  */
-export default function TurFitur({ kunci, versi = 1, langkah, aktif = true }: TurFiturProps) {
+export default function TurFitur({ kunci, versi = 1, langkah, aktif = true, onTutup }: TurFiturProps) {
+    // Penanda "sudah dilihat" dipisah per akun, jadi dua akun di satu browser tidak saling memengaruhi.
+    const pemilik: string | undefined = usePage<any>().props.auth?.user?.id;
+
     const [tampil, setTampil] = useState(false);
     const [indeks, setIndeks] = useState(0);
     const [sorot, setSorot] = useState<Sorot | null>(null);
@@ -185,16 +191,17 @@ export default function TurFitur({ kunci, versi = 1, langkah, aktif = true }: Tu
     // Keputusan tampil baru diambil setelah komponen terpasang, supaya tur tidak sempat berkedip
     // di layar siswa yang sudah pernah melihatnya.
     useEffect(() => {
-        if (!aktif || total === 0 || sudahLihatTur(kunci, versi)) return;
+        if (!aktif || total === 0 || sudahLihatTur(kunci, versi, pemilik)) return;
 
         setIndeks(0);
         setTampil(true);
-    }, [aktif, total, kunci, versi]);
+    }, [aktif, total, kunci, versi, pemilik]);
 
     const tutup = useCallback(() => {
-        tandaiTurSelesai(kunci, versi);
+        tandaiTurSelesai(kunci, versi, pemilik);
         setTampil(false);
-    }, [kunci, versi]);
+        onTutup?.();
+    }, [kunci, versi, pemilik, onTutup]);
 
     const maju = useCallback(() => {
         setIndeks((i) => (i < langkahRef.current.length - 1 ? i + 1 : i));

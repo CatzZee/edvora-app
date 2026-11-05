@@ -1,8 +1,9 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import LatihanLayout from '@/Components/Layouts/LatihanLayout';
 import Modal from '@/Components/Modal';
+import TurFitur, { LangkahTur } from '@/Components/Tur/TurFitur';
 import ArenaPengerjaan, { NavigasiSoal, StatusJawabanSoal } from '@/Components/Ujian/ArenaPengerjaan';
 import KartuPembahasan from '@/Components/Ujian/KartuPembahasan';
 import KartuSoal, { TeksMatematika } from '@/Components/Ujian/KartuSoal';
@@ -34,134 +35,78 @@ function pesanGagal(e: unknown, aksi: string): string {
     return data?.message ?? `Gagal ${aksi}. Coba lagi.`;
 }
 
+// Langkah tur pengerjaan soal. Atribut data-tur dipasang di JSX halaman ini.
+const LANGKAH_SOAL: LangkahTur = {
+    target: 'ujian-soal',
+    posisi: 'bawah',
+    teks: (
+        <>
+            Ini adalah <strong className="font-semibold">soal yang akan kamu kerjakan</strong>. Baca dan teliti hingga kamu memahami maksud dari soal!
+        </>
+    ),
+};
+
+const LANGKAH_OPSI: LangkahTur = {
+    target: 'ujian-opsi',
+    posisi: 'atas',
+    teks: (
+        <>
+            <strong className="font-semibold">Pilih jawaban</strong> yang menurutmu paling tepat dan periksa kembali!
+        </>
+    ),
+};
+
+const LANGKAH_HINT: LangkahTur = {
+    target: 'ujian-hint',
+    posisi: 'atas',
+    teks: (
+        <>
+            <strong className="font-semibold">Bingung menjawab?</strong> Gunakan Hint untuk mendapatkan petunjuk!
+        </>
+    ),
+};
+
+const LANGKAH_NAVIGASI: LangkahTur = {
+    target: 'ujian-navigasi',
+    posisi: 'bawah',
+    teks: (
+        <>
+            Klik <strong className="font-semibold">Sebelumnya</strong> untuk kembali ke soal sebelumnya, dan{' '}
+            <strong className="font-semibold">Lanjutkan</strong> untuk mengerjakan soal selanjutnya.
+        </>
+    ),
+};
+
+const LANGKAH_KELUAR: LangkahTur = {
+    target: 'ujian-keluar',
+    posisi: 'atas',
+    teks: (
+        <>
+            Klik tombol <strong className="font-semibold">Keluar Halaman</strong> jika ingin meninggalkan sesi pengerjaan. Progresmu sudah tersimpan!
+        </>
+    ),
+};
+
+const LANGKAH_PEMBAHASAN: LangkahTur = {
+    target: 'ujian-pembahasan',
+    posisi: 'atas',
+    teks: (
+        <>
+            Yuk, <strong className="font-semibold">pelajari pembahasannya!</strong> Kamu bisa melihat kunci jawaban dan memahami cara mendapatkan jawaban yang benar
+        </>
+    ),
+};
+
 export default function Ujian({ soalList, konfigurasi, jawabanTersimpan = [], hintTerbuka: hintAwal = {} }: UjianProps) {
     const simulasi = konfigurasi.mode === 'simulasi';
 
-    // State Walkthrough Ujian (1/5 - 5/5)
-    const [currentStep, setCurrentStep] = useState<number | null>(null);
-    const [tourPopoverPosition, setTourPopoverPosition] = useState({ previous: { left: 0, top: 0, arrow: 0 }, next: { left: 0, top: 0, arrow: 0 }, exit: { left: 0, top: 0, arrow: 0 } });
-    const [navigationSpotlightRect, setNavigationSpotlightRect] = useState<DOMRect | null>(null);
+    // Tur utama dipasang lewat TurFitur di bagian bawah JSX. Penanda tur versi lama tetap dihormati
+    // agar siswa yang sudah pernah melihatnya tidak melihat tur ini.
+    const [turUtamaAktif] = useState(() => localStorage.getItem('edvora_has_seen_ujian_tour') === null);
 
-    // State khusus walkthrough saat pertama kali menjawab salah
+    // Tur pembahasan muncul saat siswa pertama kali menjawab salah; `aktif` dimatikan setelah ditutup.
     const [showPembahasanTour, setShowPembahasanTour] = useState(false);
-
-    const finishPembahasanTour = () => {
-        setShowPembahasanTour(false);
-        localStorage.setItem('edvora_has_seen_pembahasan_tour', 'true');
-    };
-
-    useEffect(() => {
-        const hasSeenTour = localStorage.getItem('edvora_has_seen_ujian_tour');
-        if (!hasSeenTour) {
-            setCurrentStep(1);
-        }
-    }, []);
-
-    const finishTour = () => {
-        setCurrentStep(null);
-        localStorage.setItem('edvora_has_seen_ujian_tour', 'true');
-    };
-
-    // Menempatkan tombol navigasi yang sedang dipandu di atas lapisan gelap.
-    // Style asli dipulihkan ketika walkthrough berpindah langkah atau selesai.
-    useEffect(() => {
-        if (currentStep !== 4 && currentStep !== 5) return;
-
-        const root = document.getElementById('tour-tombol-navigasi');
-        if (!root) return;
-
-        const buttons = Array.from(root.querySelectorAll('button'));
-        const targets = buttons.filter((button) => {
-            const label = (button.textContent ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
-            if (currentStep === 4) return label.includes('sebelumnya') || label.includes('lanjutkan');
-            return label.includes('keluar halaman');
-        });
-
-        const previousStyles = targets.map((button) => button.getAttribute('style'));
-        targets.forEach((button) => {
-            Object.assign(button.style, {
-                position: 'relative',
-                zIndex: '60',
-                opacity: '1',
-                filter: 'none',
-                color: '#ffffff',
-                backgroundColor: currentStep === 4 ? '#4c78dd' : '#ef6262',
-                border: 'none',
-                boxShadow: currentStep === 4
-                    ? '0 3px 10px rgba(76,120,221,.22), 0 0 13px 3px rgba(76,120,221,.48)'
-                    : '0 3px 10px rgba(244,63,94,.20), 0 0 14px 3px rgba(244,63,94,.48)',
-            });
-        });
-
-        return () => {
-            targets.forEach((button, index) => {
-                const style = previousStyles[index];
-                if (style === null) button.removeAttribute('style');
-                else button.setAttribute('style', style);
-            });
-        };
-    }, [currentStep]);
-
-    // Posisi popover dihitung dari posisi tombol aktual agar petunjuk tepat menunjuk target
-    // pada berbagai ukuran layar dan tidak bergantung pada persentase posisi viewport.
-    useEffect(() => {
-        if (currentStep !== 4 && currentStep !== 5) return;
-
-        const root = document.getElementById('tour-tombol-navigasi');
-        if (!root) return;
-
-        const findButton = (keyword: string) =>
-            Array.from(root.querySelectorAll('button')).find((button) =>
-                (button.textContent ?? '').replace(/\s+/g, ' ').trim().toLowerCase().includes(keyword),
-            );
-
-        const updatePositions = () => {
-            // Simpan posisi seluruh card navigasi untuk membuat lubang pada backdrop.
-            // Dengan begitu card tidak ikut diredupkan meskipun berada di dalam sidebar.
-            setNavigationSpotlightRect(root.getBoundingClientRect());
-            const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
-            const previous = findButton('sebelumnya')?.getBoundingClientRect();
-            const next = findButton('lanjutkan')?.getBoundingClientRect();
-            const exit = findButton('keluar halaman')?.getBoundingClientRect();
-
-            if (currentStep === 4 && previous && next) {
-                const prevWidth = 280;
-                const nextWidth = 250;
-                const prevLeft = clamp(previous.left - 155, 12, window.innerWidth - prevWidth - 12);
-                const nextLeft = clamp(next.right - nextWidth + 8, 12, window.innerWidth - nextWidth - 12);
-                setTourPopoverPosition((previousPosition) => ({
-                    ...previousPosition,
-                    previous: {
-                        left: prevLeft,
-                        top: clamp(previous.top - 100, 12, window.innerHeight - 120),
-                        arrow: clamp(previous.left + previous.width / 2 - prevLeft - 9, 18, prevWidth - 36),
-                    },
-                    next: {
-                        left: nextLeft,
-                        top: clamp(next.bottom + 12, 12, window.innerHeight - 165),
-                        arrow: clamp(next.left + next.width / 2 - nextLeft - 9, 18, nextWidth - 36),
-                    },
-                }));
-            }
-
-            if (currentStep === 5 && exit) {
-                const exitWidth = 430;
-                const exitLeft = clamp(exit.left - 75, 12, window.innerWidth - exitWidth - 12);
-                setTourPopoverPosition((previousPosition) => ({
-                    ...previousPosition,
-                    exit: {
-                        left: exitLeft,
-                        top: clamp(exit.top - 195, 12, window.innerHeight - 195),
-                        arrow: clamp(exit.left + exit.width / 2 - exitLeft - 9, 18, exitWidth - 36),
-                    },
-                }));
-            }
-        };
-
-        updatePositions();
-        window.addEventListener('resize', updatePositions);
-        return () => window.removeEventListener('resize', updatePositions);
-    }, [currentStep]);
+    const tutupPembahasanTour = useCallback(() => setShowPembahasanTour(false), []);
 
     const form = useForm({
         ...konfigurasi,
@@ -205,6 +150,17 @@ export default function Ujian({ soalList, konfigurasi, jawabanTersimpan = [], hi
     // Mode fleksibel dan remedial (bukan simulasi): Keluar Halaman hanya ada selama masih ada soal yang belum
     // disimpan, dan Selesaikan Latihan baru muncul setelah SEMUA soal tersimpan.
     const semuaTerjawab = soalList.every((s) => cariJawaban(s.id) !== undefined);
+
+    // Langkah hanya memuat elemen yang benar-benar tampil: Hint tidak ada di mode simulasi atau soal
+    // terkunci, dan Keluar Halaman tidak ada di mode simulasi atau bila semua soal sudah dijawab.
+    // Dihitung sekali supaya jumlah langkah tidak berubah di tengah tur.
+    const [langkahTur] = useState<LangkahTur[]>(() => [
+        LANGKAH_SOAL,
+        LANGKAH_OPSI,
+        ...(!simulasi && !terkunci ? [LANGKAH_HINT] : []),
+        LANGKAH_NAVIGASI,
+        ...(!simulasi && !semuaTerjawab ? [LANGKAH_KELUAR] : []),
+    ]);
 
     const simpanJawaban =(soalId: IdOpsi, opsiIds: IdOpsi[], jawabanIsian = '', pilihanKolom: Record<string, number> = {}) => {
         const lainnya = form.data.jawaban.filter((j: Jawaban) => j.soalId !== soalId);
@@ -321,28 +277,16 @@ export default function Ujian({ soalList, konfigurasi, jawabanTersimpan = [], hi
             breadcrumb={['Latihan Soal', konfigurasi.namaSubtes, ...(namaMode ? [`Mode ${namaMode}`] : [])]}
             tanpaTautan
             sidebar={
-                <div className={`relative space-y-4 font-poppins ${currentStep === 4 || currentStep === 5 ? 'z-[31]' : ''}`}>
-                    {/* STEP 4: HIGHLIGHT PANEL NAVIGASI SOAL */}
-                    <div
-                        id="tour-tombol-navigasi"
-                        className={`transition-all duration-300 relative ${currentStep === 4
-                            ? 'z-[33] scale-[1.02] rounded-3xl outline-4 outline-white shadow-[0_0_35px_8px_rgba(66,153,225,0.85)] bg-white p-1'
-                            : currentStep === 5
-                                ? 'z-[33]'
-                                : ''
-                            }`}
-                    >
+                <div className="relative space-y-4 font-poppins">
+                    {/* Panel navigasi soal: disorot di langkah 4 tur */}
+                    <div data-tur="ujian-navigasi">
                         <NavigasiSoal
                             judul={konfigurasi.namaSubtes}
                             jumlahSoal={soalList.length}
                             indeksAktif={indeksAktif}
                             sudahDijawab={(i) => cariJawaban(soalList[i].id) !== undefined}
                             statusJawaban={simulasi ? undefined : statusJawabanSoal}
-                            onPilih={(i) => {
-                                // Mencegah pindah nomor soal saat Step 4 atau 5 tour aktif
-                                if (currentStep === 4 || currentStep === 5) return;
-                                setIndeksAktif(i);
-                            }}
+                            onPilih={(i) => setIndeksAktif(i)}
                             aksiBawah={
                                 simulasi ? (
                                     <button
@@ -354,27 +298,12 @@ export default function Ujian({ soalList, konfigurasi, jawabanTersimpan = [], hi
                                         Simpan Jawaban
                                     </button>
                                 ) : semuaTerjawab ? null : (
-                                    /* STEP 5: HIGHLIGHT KHUSUS TOMBOL KELUAR HALAMAN (MENYALA MERAH TERANG) */
-                                    <div
-                                        id="tour-keluar-halaman"
-                                        className={`transition-all duration-300 relative ${currentStep === 5
-                                            ? 'z-[50] scale-[1.03] rounded-xl shadow-[0_0_16px_4px_rgba(244,63,94,0.42)]'
-                                            : ''
-                                            }`}
-                                    >
+                                    /* Tombol keluar: disorot di langkah 5 tur */
+                                    <div data-tur="ujian-keluar">
                                         <button
                                             type="button"
-                                            onClick={(e) => {
-                                                // Mencegah aksi keluar saat Step 5 tour aktif
-                                                if (currentStep === 5) {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    return;
-                                                }
-                                                setModal('keluar');
-                                            }}
-                                            className={`h-10 w-full rounded-lg bg-ujian-merah text-[13px] font-semibold text-white shadow-panel transition duration-200 ${currentStep === 5 ? 'cursor-default opacity-100' : 'hover:-translate-y-0.5 hover:shadow-md active:translate-y-0'
-                                                }`}
+                                            onClick={() => setModal('keluar')}
+                                            className="h-10 w-full rounded-lg bg-ujian-merah text-[13px] font-semibold text-white shadow-panel transition duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0"
                                         >
                                             ← Keluar Halaman
                                         </button>
@@ -388,108 +317,6 @@ export default function Ujian({ soalList, konfigurasi, jawabanTersimpan = [], hi
         >
             <Head title={`Latihan ${konfigurasi.namaSubtes}`} />
 
-            {/* BACKDROP TOUR: sisakan seluruh area Card Navigasi Soal tetap terang pada Step 4/5. */}
-            {(currentStep !== null || showPembahasanTour) && (currentStep === 4 || currentStep === 5) && navigationSpotlightRect ? (() => {
-                const pad = 8;
-                const left = Math.max(0, navigationSpotlightRect.left - pad);
-                const top = Math.max(0, navigationSpotlightRect.top - pad);
-                const right = Math.min(window.innerWidth, navigationSpotlightRect.right + pad);
-                const bottom = Math.min(window.innerHeight, navigationSpotlightRect.bottom + pad);
-                return (
-                    <>
-                        <div className="fixed left-0 top-0 z-[30] bg-slate-900/60 transition-opacity duration-300" style={{ width: '100vw', height: top }} />
-                        <div className="fixed left-0 z-[30] bg-slate-900/60 transition-opacity duration-300" style={{ top, width: left, height: bottom - top }} />
-                        <div className="fixed right-0 z-[30] bg-slate-900/60 transition-opacity duration-300" style={{ top, width: Math.max(0, window.innerWidth - right), height: bottom - top }} />
-                        <div className="fixed bottom-0 left-0 z-[30] bg-slate-900/60 transition-opacity duration-300" style={{ top: bottom, width: '100vw', height: Math.max(0, window.innerHeight - bottom) }} />
-                    </>
-                );
-            })() : (currentStep !== null || showPembahasanTour) ? (
-                <div className="fixed inset-0 z-[30] bg-slate-900/60 transition-opacity duration-300" />
-            ) : null}
-
-            {/* STEP 4: PETUNJUK TERPISAH UNTUK TOMBOL SEBELUMNYA DAN LANJUTKAN */}
-            {currentStep === 4 && (
-                <>
-                    {/* Petunjuk tombol Sebelumnya */}
-                    <div style={{ left: tourPopoverPosition.previous.left, top: tourPopoverPosition.previous.top, width: 280 }} className="fixed z-[1000] max-w-[calc(100vw-1.5rem)] rounded-[18px] border border-slate-100 bg-white px-5 py-4 shadow-2xl animate-fade-in font-poppins pointer-events-auto">
-                        <div style={{ left: tourPopoverPosition.previous.arrow }} className="absolute -bottom-2 h-0 w-0 border-x-[9px] border-x-transparent border-t-[10px] border-t-white" />
-                        <p className="text-[13px] font-medium leading-[1.35] text-[#2b4c7e]">
-                            Klik <strong className="font-bold text-[#1a365d]">Sebelumnya</strong> untuk kembali ke soal sebelumnya
-                        </p>
-                    </div>
-
-                    {/* Petunjuk tombol Lanjutkan + navigasi langkah tur */}
-                    <div style={{ left: tourPopoverPosition.next.left, top: tourPopoverPosition.next.top, width: 250 }} className="fixed z-[1000] max-w-[calc(100vw-1.5rem)] rounded-[18px] border border-slate-100 bg-white px-5 py-4 shadow-2xl animate-fade-in font-poppins pointer-events-auto">
-                        <div style={{ left: tourPopoverPosition.next.arrow }} className="absolute -top-2 h-0 w-0 border-x-[9px] border-x-transparent border-b-[10px] border-b-white" />
-                        <p className="text-[13px] font-medium leading-[1.35] text-[#2b4c7e]">
-                            Klik <strong className="font-bold text-[#1a365d]">Lanjutkan</strong> untuk mengerjakan soal selanjutnya
-                        </p>
-                        <div className="mt-3 flex items-center justify-between">
-                            <button
-                                onClick={finishTour}
-                                className="rounded-full border border-slate-300 px-3 py-1 text-[11px] font-semibold text-[#3b5998] shadow-sm transition hover:bg-slate-50 cursor-pointer"
-                            >
-                                Lewati
-                            </button>
-                            <div className="flex items-center gap-1.5">
-                                <button
-                                    onClick={() => setCurrentStep(3)}
-                                    aria-label="Langkah sebelumnya"
-                                    className="flex h-5 w-5 items-center justify-center rounded-md bg-[#4c78dd] text-xs font-bold leading-none text-white shadow-md transition hover:bg-[#3b5998] cursor-pointer"
-                                >
-                                    ‹
-                                </button>
-                                <span className="text-[11px] font-bold text-[#3b5998]">4 / 5</span>
-                                <button
-                                    onClick={() => setCurrentStep(5)}
-                                    aria-label="Langkah berikutnya"
-                                    className="flex h-5 w-5 items-center justify-center rounded-md bg-[#4c78dd] text-xs font-bold leading-none text-white shadow-md transition hover:bg-[#3b5998] cursor-pointer"
-                                >
-                                    ›
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </>
-            )}
-
-            {/* POPOVER STEP 5 / 5 (Presisi Menyorot Tombol Keluar Halaman) */}
-            {currentStep === 5 && (
-                <div style={{ left: tourPopoverPosition.exit.left, top: tourPopoverPosition.exit.top, width: 430 }} className="fixed z-[1000] max-w-[calc(100vw-1.5rem)] rounded-[22px] bg-white px-6 py-5 shadow-2xl animate-fade-in border border-slate-100 font-poppins pointer-events-auto">
-                    {/* Panah diarahkan tepat ke tengah tombol Keluar Halaman */}
-                    <div style={{ left: tourPopoverPosition.exit.arrow }} className="absolute -bottom-3 h-0 w-0 border-x-8 border-x-transparent border-t-8 border-t-white" />
-
-                    <p className="text-sm font-medium leading-relaxed text-[#2b4c7e]">
-                        Klik tombol <strong className="font-bold text-[#1a365d]">Keluar Halaman</strong> jika ingin meninggalkan sesi pengerjaan. Progresmu sudah tersimpan!
-                    </p>
-
-                    <div className="mt-5 flex items-center justify-between">
-                        <button
-                            onClick={finishTour}
-                            className="rounded-full bg-gradient-to-r from-[#4c78dd] to-[#3b5998] px-6 py-1.5 text-xs font-bold text-white shadow-md transition hover:opacity-95 cursor-pointer"
-                        >
-                            Selesai
-                        </button>
-
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => setCurrentStep(4)}
-                                className="flex h-5 w-5 items-center justify-center rounded-md bg-[#4c78dd] text-xs font-bold text-white shadow-md transition hover:bg-[#3b5998] cursor-pointer"
-                            >
-                                ‹
-                            </button>
-                            <span className="text-xs font-bold text-[#3b5998]">5 / 5</span>
-                            <button
-                                disabled
-                                className="flex h-5 w-5 items-center justify-center rounded-md bg-slate-200 text-xs font-bold text-slate-400 cursor-not-allowed"
-                            >
-                                ›
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             <ArenaPengerjaan
                 judul={`Soal ${indeksAktif + 1} dari ${soalList.length}`}
                 aksiHeader={
@@ -499,68 +326,19 @@ export default function Ujian({ soalList, konfigurasi, jawabanTersimpan = [], hi
                 }
                 footerKiri={
                     !simulasi && !terkunci && (
-                        <div
-                            id="tour-tombol-hint"
-                            className={`transition-all duration-300 relative ${currentStep === 3
-                                ? 'z-[40] scale-[1.05] rounded-[12px] bg-amber-100 outline-4 outline-white shadow-[0_0_35px_8px_rgba(245,158,11,0.85)]'
-                                : ''
-                                }`}
-                        >
+                        <div data-tur="ujian-hint">
                             <button
                                 type="button"
-                                onClick={(e) => {
-                                    // Mencegah klik membuka modal hint saat Step 3 tur sedang aktif
-                                    if (currentStep === 3) {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        return;
-                                    }
+                                onClick={() => {
                                     setPesanHint(null);
                                     setModal('hint');
                                 }}
                                 disabled={!soal.ada_hint} // Hanya disabled jika soal tidak punya hint
                                 title={soal.ada_hint ? undefined : 'Soal ini belum punya hint'}
-                                className={`flex h-11 items-center gap-1.5 rounded-[10px] border border-siswa-hint-garis bg-siswa-hint-latar px-5 text-sm font-semibold text-siswa-hint-teks shadow-panel transition duration-200 enabled:hover:-translate-y-0.5 enabled:hover:shadow-md ${currentStep === 3 ? 'cursor-default opacity-100' : ''
-                                    }`}
+                                className="flex h-11 items-center gap-1.5 rounded-[10px] border border-siswa-hint-garis bg-siswa-hint-latar px-5 text-sm font-semibold text-siswa-hint-teks shadow-panel transition duration-200 enabled:hover:-translate-y-0.5 enabled:hover:shadow-md"
                             >
                                 <IkonLampu className="h-[18px] w-[18px]" /> Hint
                             </button>
-
-                            {/* POPOVER STEP 3 / 5 */}
-                            {currentStep === 3 && (
-                                <div className="absolute left-0 -top-44 z-[60] w-[320px] max-w-[calc(100vw-2rem)] rounded-[18px] bg-white p-5 shadow-2xl animate-fade-in border border-slate-100 font-poppins pointer-events-auto">
-                                    <div className="absolute -bottom-3 left-8 h-0 w-0 border-x-8 border-x-transparent border-t-8 border-t-white" />
-
-                                    <p className="text-sm font-medium leading-relaxed text-[#2b4c7e]">
-                                        <strong className="font-bold text-[#1a365d]">Bingung menjawab?</strong> Gunakan Hint untuk mendapatkan petunjuk!
-                                    </p>
-
-                                    <div className="mt-5 flex items-center justify-between">
-                                        <button
-                                            onClick={finishTour}
-                                            className="rounded-full border border-slate-300 px-5 py-1.5 text-xs font-semibold text-[#3b5998] transition hover:bg-slate-50 cursor-pointer"
-                                        >
-                                            Lewati
-                                        </button>
-
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => setCurrentStep(2)}
-                                                className="flex h-5 w-5 items-center justify-center rounded-md bg-[#4c78dd] text-xs font-bold text-white shadow-md transition hover:bg-[#3b5998] cursor-pointer"
-                                            >
-                                                ‹
-                                            </button>
-                                            <span className="text-xs font-bold text-[#3b5998]">3 / 5</span>
-                                            <button
-                                                onClick={() => setCurrentStep(4)}
-                                                className="flex h-5 w-5 items-center justify-center rounded-md bg-[#4c78dd] text-xs font-bold text-white shadow-md transition hover:bg-[#3b5998] cursor-pointer"
-                                            >
-                                                ›
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     )
                 }
@@ -585,62 +363,13 @@ export default function Ujian({ soalList, konfigurasi, jawabanTersimpan = [], hi
                 }
             >
                 <div key={soal.id} className="animate-muncul-halus">
-                    {/* STEP 1: TEKS SOAL */}
-                    <div
-                        id="tour-teks-soal"
-                        className={`transition-all duration-300 relative ${currentStep === 1
-                            ? 'z-[40] scale-[1.01] rounded-3xl outline-4 outline-white shadow-[0_0_35px_8px_rgba(66,153,225,0.85)] bg-white p-2'
-                            : ''
-                            }`}
-                    >
+                    {/* Kartu soal: disorot di langkah 1 tur */}
+                    <div data-tur="ujian-soal">
                         <KartuSoal nomor={indeksAktif + 1} teksSoal={soal.teks_soal} gambarUrl={soal.gambar_soal} />
-
-                        {/* POPOVER STEP 1 / 5 (Diturunkan sedikit agar melayang rapi di bawah kartu soal) */}
-                        {currentStep === 1 && (
-                            <div className="absolute right-6 -bottom-44 z-[60] w-[320px] max-w-[calc(100vw-2rem)] rounded-[18px] bg-white p-5 shadow-2xl animate-fade-in border border-slate-100 font-poppins pointer-events-auto">
-                                {/* Panah Atas Menunjuk ke Kartu Soal */}
-                                <div className="absolute -top-3 right-12 h-0 w-0 border-x-8 border-x-transparent border-b-8 border-b-white" />
-
-                                <p className="text-sm font-medium leading-relaxed text-[#2b4c7e]">
-                                    Ini adalah <strong className="font-bold text-[#1a365d]">soal yang akan kamu kerjakan</strong>. Baca dan teliti hingga kamu memahami maksud dari soal!
-                                </p>
-
-                                <div className="mt-5 flex items-center justify-between">
-                                    <button
-                                        onClick={finishTour}
-                                        className="rounded-full border border-slate-300 px-5 py-1.5 text-xs font-semibold text-[#3b5998] transition hover:bg-slate-50 cursor-pointer"
-                                    >
-                                        Lewati
-                                    </button>
-
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            disabled
-                                            className="flex h-5 w-5 items-center justify-center rounded-md bg-slate-200 text-xs font-bold text-slate-400 cursor-not-allowed"
-                                        >
-                                            ‹
-                                        </button>
-                                        <span className="text-xs font-bold text-[#3b5998]">1 / 5</span>
-                                        <button
-                                            onClick={() => setCurrentStep(2)}
-                                            className="flex h-5 w-5 items-center justify-center rounded-md bg-[#4c78dd] text-xs font-bold text-white shadow-md transition hover:bg-[#3b5998] cursor-pointer"
-                                        >
-                                            ›
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
                     </div>
 
-                    {/* STEP 2: OPSI JAWABAN */}
-                    <div
-                        id="tour-opsi-jawaban"
-                        className={`mt-3 transition-all duration-300 relative ${currentStep === 2
-                            ? 'z-[40] scale-[1.01] rounded-3xl outline-4 outline-white shadow-[0_0_35px_8px_rgba(66,153,225,0.85)] bg-white p-2'
-                            : ''
-                            }`}
-                    >
+                    {/* Opsi jawaban: disorot di langkah 2 tur */}
+                    <div data-tur="ujian-opsi" className="mt-3">
                         <div className="space-y-2.5">
                             {tabel ? (
                                 <TabelMajemuk
@@ -666,42 +395,6 @@ export default function Ujian({ soalList, konfigurasi, jawabanTersimpan = [], hi
                             )}
                         </div>
 
-                        {/* POPOVER STEP 2 / 5 (Dinaikkan sedikit ke atas agar tidak menutupi Opsi A) */}
-                        {currentStep === 2 && (
-                            <div className="absolute right-12 -top-44 z-[60] w-[320px] max-w-[calc(100vw-2rem)] rounded-[18px] bg-white p-5 shadow-2xl animate-fade-in border border-slate-100 font-poppins pointer-events-auto">
-                                {/* Panah Bawah Menunjuk ke Opsi Jawaban */}
-                                <div className="absolute -bottom-3 right-12 h-0 w-0 border-x-8 border-x-transparent border-t-8 border-t-white" />
-
-                                <p className="text-sm font-medium leading-relaxed text-[#2b4c7e]">
-                                    <strong className="font-bold text-[#1a365d]">Pilih jawaban</strong> yang menurutmu paling tepat dan periksa kembali!
-                                </p>
-
-                                <div className="mt-5 flex items-center justify-between">
-                                    <button
-                                        onClick={finishTour}
-                                        className="rounded-full border border-slate-300 px-5 py-1.5 text-xs font-semibold text-[#3b5998] transition hover:bg-slate-50 cursor-pointer"
-                                    >
-                                        Lewati
-                                    </button>
-
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={() => setCurrentStep(1)}
-                                            className="flex h-5 w-5 items-center justify-center rounded-md bg-[#4c78dd] text-xs font-bold text-white shadow-md transition hover:bg-[#3b5998] cursor-pointer"
-                                        >
-                                            ‹
-                                        </button>
-                                        <span className="text-xs font-bold text-[#3b5998]">2 / 5</span>
-                                        <button
-                                            onClick={() => setCurrentStep(3)}
-                                            className="flex h-5 w-5 items-center justify-center rounded-md bg-[#4c78dd] text-xs font-bold text-white shadow-md transition hover:bg-[#3b5998] cursor-pointer"
-                                        >
-                                            ›
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
                     </div>
 
                     {isian && !hasilJawaban[soal.id] && (
@@ -736,40 +429,13 @@ export default function Ujian({ soalList, konfigurasi, jawabanTersimpan = [], hi
                     )}
 
                     {terkunci && (
-                        <div
-                            id="tour-kartu-pembahasan"
-                            className={`transition-all duration-300 relative ${showPembahasanTour
-                                ? 'z-[40] scale-[1.01] rounded-3xl outline-4 outline-white shadow-[0_0_35px_8px_rgba(66,153,225,0.85)] bg-white p-1'
-                                : ''
-                                }`}
-                        >
+                        <div data-tur="ujian-pembahasan">
                             <KartuPembahasan
                                 status={statusAktif ?? 'kosong'}
                                 kunci={teksKunci()}
                                 pembahasan={hasilJawaban[soal.id]?.pembahasan ?? ''}
                                 gambar={hasilJawaban[soal.id]?.gambarPembahasan ?? null}
                             />
-
-                            {/* POPOVER TUR PEMBAHASAN (Tampil Saat Salah Menjawab Pertama Kali) */}
-                            {showPembahasanTour && (
-                                <div className="absolute left-1/2 -top-40 z-[60] w-[360px] max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-[18px] bg-white p-5 shadow-2xl animate-fade-in border border-slate-100 font-poppins pointer-events-auto">
-                                    {/* Panah Bawah Menunjuk ke Kartu Pembahasan */}
-                                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 h-0 w-0 border-x-8 border-x-transparent border-t-8 border-t-white" />
-
-                                    <p className="text-sm font-medium leading-relaxed text-[#2b4c7e]">
-                                        Yuk, <strong className="font-bold text-[#1a365d]">pelajari pembahasannya!</strong> Kamu bisa melihat kunci jawaban dan memahami cara mendapatkan jawaban yang benar
-                                    </p>
-
-                                    <div className="mt-5 flex justify-end">
-                                        <button
-                                            onClick={finishPembahasanTour}
-                                            className="rounded-full bg-gradient-to-r from-[#4c78dd] to-[#3b5998] px-7 py-2 text-xs font-bold text-white shadow-md shadow-blue-500/30 transition hover:opacity-95 cursor-pointer"
-                                        >
-                                            Selesai
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     )}
                 </div>
@@ -863,6 +529,9 @@ export default function Ujian({ soalList, konfigurasi, jawabanTersimpan = [], hi
                     </div>
                 </div>
             </Modal>
+
+            <TurFitur kunci="ujian-pengerjaan" langkah={langkahTur} aktif={turUtamaAktif} />
+            <TurFitur kunci="ujian-pembahasan" langkah={[LANGKAH_PEMBAHASAN]} aktif={showPembahasanTour} onTutup={tutupPembahasanTour} />
         </LatihanLayout>
     );
 }
