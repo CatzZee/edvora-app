@@ -83,7 +83,8 @@ return [
             'driver' => 'pgsql',
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '5432'),
+            // Dikunci 5432 (session pooler): hosting menyuntikkan DB_PORT=6543 yang tidak mendukung prepared statement.
+            'port' => '5432',
             'database' => env('DB_DATABASE', 'laravel'),
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
