@@ -37,7 +37,7 @@ export default function Index({ paketList }: IndexProps) {
 
     return (
         <>
-            <Head title="Try Out - EDVORA" />
+            <Head title="Try Out" />
 
             {/* Sidebar dan header dari SiswaLayout (persistent layout di bawah).
                 Judul, ukuran huruf, dan jarak antar kartu disamakan dengan halaman Pilih Subtes. */}
