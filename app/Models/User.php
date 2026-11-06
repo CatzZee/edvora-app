@@ -16,6 +16,9 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, HasUuids, Notifiable;
 
+    /** Pesan untuk akun yang dinonaktifkan admin (is_active = false): login, lupa password, dan sesi berjalan. */
+    public const PESAN_NONAKTIF = 'Akun Anda dinonaktifkan. Hubungi admin.';
+
     protected $table = 'users';
 
     public $incrementing = false;

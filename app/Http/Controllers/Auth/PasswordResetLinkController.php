@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
@@ -35,6 +36,11 @@ class PasswordResetLinkController extends Controller
             'email.required' => 'Email wajib diisi.',
             'email.email' => 'Format email tidak valid.',
         ]);
+
+        // Akun yang dinonaktifkan admin tidak boleh beraktivitas, termasuk meminta tautan ubah kata sandi.
+        if (Password::getUser($request->only('email'))?->is_active === false) {
+            throw ValidationException::withMessages(['email' => User::PESAN_NONAKTIF]);
+        }
 
         // Email tautan dikirim User::sendPasswordResetNotification(); pesan status broker diterjemahkan di sini.
         $status = Password::sendResetLink(

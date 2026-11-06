@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -48,8 +49,12 @@ class LoginRequest extends FormRequest
         if (! Auth::attempt($credentials, $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
+            // Password benar tetapi akun dinonaktifkan admin: beri tahu siswa. Dicek hanya setelah password
+            // terbukti benar, supaya status akun tidak terbuka bagi orang yang tidak tahu passwordnya.
+            $nonaktif = Auth::validate($this->only('email', 'password'));
+
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'email' => $nonaktif ? User::PESAN_NONAKTIF : trans('auth.failed'),
             ]);
         }
 

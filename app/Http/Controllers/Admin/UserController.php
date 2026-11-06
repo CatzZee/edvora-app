@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -57,6 +58,7 @@ class UserController extends Controller
                 'kelasLabel' => Siswa::PILIHAN_KELAS[$user->siswa?->kelas ?? ''] ?? null,
                 'jenisKelamin' => $user->siswa?->jenis_kelamin,
                 'isActive' => (bool) $user->is_active,
+                'emailTerverifikasi' => $user->email_verified_at !== null,
                 'tanggalDaftar' => $user->created_at?->toIso8601String(),
                 'terakhirLogin' => $user->terakhir_login_at?->toIso8601String(),
             ]);
@@ -164,17 +166,20 @@ class UserController extends Controller
 
     public function nonaktifkan(User $user): RedirectResponse
     {
-        // Nonaktifkan hanya untuk akun siswa.
+        // Menonaktifkan siswa (SA6): is_active = false, email_verified_at = null, remember_token diganti,
+        // OTP cache dihapus. Syarat if ($user->is_active) tetap dipertahankan agar tidak mencatat audit log
+        // untuk aksi yang tidak mengubah data. Sesi yang masih berjalan ditangani middleware TolakAkunNonaktif.
         abort_unless($user->role === 'siswa', 404);
 
         if ($user->is_active) {
             DB::transaction(function () use ($user) {
-                // Login sudah menolak is_active = false (LoginRequest). remember_token diganti agar
-                // cookie "ingat saya" juga tidak bisa dipakai masuk lagi.
                 $user->forceFill([
                     'is_active' => false,
+                    'email_verified_at' => null,
                     'remember_token' => Str::random(60),
                 ])->save();
+
+                Cache::forget('otp_'.$user->id);
 
                 AuditLog::catat('Menonaktifkan siswa', $this->identitas($user));
             });
@@ -187,7 +192,8 @@ class UserController extends Controller
 
     public function aktifkan(User $user): RedirectResponse
     {
-        // Mengaktifkan kembali siswa yang dinonaktifkan (UCS6 2a.2a.2: "hingga diaktifkan kembali").
+        // Mengaktifkan kembali siswa yang dinonaktifkan (SA9): hanya is_active = true.
+        // email_verified_at tetap null (dikosongkan saat dinonaktifkan), jadi siswa wajib verifikasi OTP ulang.
         abort_unless($user->role === 'siswa', 404);
 
         if (! $user->is_active) {

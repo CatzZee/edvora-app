@@ -3,6 +3,7 @@
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\PastikanBiodataLengkap;
 use App\Http\Middleware\PastikanPeran;
+use App\Http\Middleware\TolakAkunNonaktif;
 use App\Http\Middleware\TolakSesiLogout;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
@@ -23,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->web(append: [
             TolakSesiLogout::class,
+            TolakAkunNonaktif::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);

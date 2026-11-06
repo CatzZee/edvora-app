@@ -12,6 +12,7 @@ interface SiswaItem {
     kelasLabel: string | null;
     jenisKelamin: 'laki-laki' | 'perempuan' | null;
     isActive: boolean;
+    emailTerverifikasi: boolean;
     tanggalDaftar: string | null; // ISO, UTC
     terakhirLogin: string | null; // ISO, UTC; null = belum pernah login
 }
@@ -263,7 +264,7 @@ export default function KelolaUser({ siswaList, editorList, cari }: KelolaUserPr
                                 <div className="rounded-subtes bg-siswa-laman-awal px-4 py-2.5 sm:col-span-2">
                                     <dt className="text-[12px] text-siswa-teks">Status Akun</dt>
                                     <dd className="mt-1">
-                                        <LencanaStatus aktif={p.siswa.isActive} />
+                                        <LencanaStatus aktif={p.siswa.isActive && p.siswa.emailTerverifikasi} />
                                     </dd>
                                 </div>
                                 <IsianInfo label="Tanggal Daftar" isi={formatWaktu(p.siswa.tanggalDaftar)} />
@@ -438,7 +439,7 @@ export default function KelolaUser({ siswaList, editorList, cari }: KelolaUserPr
                                             </td>
                                             <td className="px-4 py-3 text-center text-siswa-teks">{siswa.kelasLabel ?? '-'}</td>
                                             <td className="px-4 py-3 text-center">
-                                                <LencanaStatus aktif={siswa.isActive} />
+                                                <LencanaStatus aktif={siswa.isActive && siswa.emailTerverifikasi} />
                                             </td>
                                             <td className="px-5 py-3 text-center">
                                                 <button

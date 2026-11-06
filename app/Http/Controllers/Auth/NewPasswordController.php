@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -50,6 +51,11 @@ class NewPasswordController extends Controller
             'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
             'password.min' => 'Kata sandi minimal 8 karakter.',
         ]);
+
+        // Tautan yang diminta sebelum akun dinonaktifkan admin tidak boleh dipakai selama akun nonaktif.
+        if (Password::getUser($request->only('email'))?->is_active === false) {
+            throw ValidationException::withMessages(['email' => User::PESAN_NONAKTIF]);
+        }
 
         // Here we will attempt to reset the user's password. If it is successful we
         // will update the password on an actual user model and persist it to the
