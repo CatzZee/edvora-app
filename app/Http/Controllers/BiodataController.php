@@ -46,14 +46,15 @@ class BiodataController extends Controller
         DB::transaction(function () use ($data, $user) {
             $kolom = [
                 'nama_lengkap' => $data['namaLengkap'],
-                'kelas' => $data['kelas'],
+                // Pilihan di form tetap divalidasi, tetapi yang disimpan selalu Kelas 12.
+                'kelas' => Siswa::KELAS_DISIMPAN,
                 'jenis_kelamin' => $data['jenisKelamin'],
                 'universitas_tujuan_id' => $data['universitasTujuanId'],
                 'prodi_tujuan_id' => $data['prodiTujuanId'],
             ];
 
             $siswa = Siswa::find($user->id);
-            
+
             if ($siswa) {
                 $siswa->update($kolom);
             } else {
