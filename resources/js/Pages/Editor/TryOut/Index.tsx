@@ -150,8 +150,8 @@ export default function PaketTryOut({ paketList }: PaketTryOutProps) {
             </div>
 
             {hapusTarget && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" role="dialog" aria-modal="true">
-                    <div className="w-full max-w-sm rounded-kartu bg-white p-6 shadow-lg">
+                <div className="fixed inset-0 z-50 flex justify-center overflow-y-auto bg-black/40 px-4 py-6" role="dialog" aria-modal="true">
+                    <div className="my-auto w-full max-w-sm rounded-kartu bg-white p-6 shadow-lg">
                         <h3 className="text-base font-semibold text-siswa-judul">Hapus Paket Try Out?</h3>
                         <p className="mt-2 text-sm text-siswa-teks">
                             Apakah Anda yakin ingin menghapus paket <b>"{hapusTarget.judul}"</b>? Tindakan ini tidak dapat dibatalkan.

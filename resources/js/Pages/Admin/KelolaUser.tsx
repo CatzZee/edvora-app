@@ -489,7 +489,7 @@ export default function KelolaUser({ siswaList, editorList, cari }: KelolaUserPr
             </div>
 
             {/* Pop-up: panel putih bersudut bulat dengan latar redup, sama dengan pop-up halaman siswa. */}
-            <Modal show={popUp !== null} onClose={tutup} maxWidth="md" pusatkan panelClassName="rounded-[24px]" backdropClassName="bg-siswa-judul/30 backdrop-blur-[2px]">
+            <Modal show={popUp !== null} onClose={tutup} maxWidth="md" panelClassName="rounded-[24px]" backdropClassName="bg-siswa-judul/30 backdrop-blur-[2px]">
                 <div className="font-poppins">{popUp && isiPopUp(popUp)}</div>
             </Modal>
         </AdminLayout>
